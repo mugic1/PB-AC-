@@ -3,61 +3,76 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Falling Particles</title>
+  <title>Gyroscope Gravity Particles</title>
   <style>
     body {
       margin: 0;
       overflow: hidden;
-      background: #000;
-      position: relative;
-      height: 100vh;
+      background: black;
     }
 
     .particle {
       position: absolute;
       border-radius: 50%;
+      background: white;
       opacity: 0.8;
-      animation: fall linear infinite;
-    }
-
-    @keyframes fall {
-      0% {
-        transform: translateY(-10px);
-        opacity: 1;
-      }
-      100% {
-        transform: translateY(110vh);
-        opacity: 0;
-      }
     }
   </style>
 </head>
 <body>
 
   <script>
-    const colors = ['#ffffff', '#ffcc00', '#00ffff', '#ff00ff', '#00ff00', '#ff6666'];
+    const numParticles = 100;
+    const particles = [];
+    let gravityX = 0;
+    let gravityY = 1; // initial downward gravity
 
-    function createParticle() {
-      const particle = document.createElement("div");
+    for (let i = 0; i < numParticles; i++) {
+      const p = document.createElement("div");
+      p.className = "particle";
       const size = Math.random() * 5 + 2;
-      particle.classList.add("particle");
-      particle.style.width = `${size}px`;
-      particle.style.height = `${size}px`;
-      particle.style.background = colors[Math.floor(Math.random() * colors.length)];
-      particle.style.left = `${Math.random() * 100}vw`;
-      particle.style.animationDuration = `${Math.random() * 3 + 2}s`;
-      particle.style.animationDelay = `${Math.random() * 5}s`;
-
-      document.body.appendChild(particle);
-
-      // Remove after animation
-      setTimeout(() => {
-        particle.remove();
-      }, 7000);
+      p.style.width = p.style.height = `${size}px`;
+      p.style.left = `${Math.random() * window.innerWidth}px`;
+      p.style.top = `${Math.random() * window.innerHeight}px`;
+      p.vx = (Math.random() - 0.5) * 2;
+      p.vy = (Math.random() - 0.5) * 2;
+      document.body.appendChild(p);
+      particles.push(p);
     }
 
-    // Continuously create particles
-    setInterval(createParticle, 100);
+    window.addEventListener("deviceorientation", (event) => {
+      // gamma: left/right tilt [-90, 90], beta: front/back tilt [-180, 180]
+      gravityX = event.gamma / 45; // Normalize
+      gravityY = event.beta / 90;
+    });
+
+    function animate() {
+      for (let p of particles) {
+        let x = parseFloat(p.style.left);
+        let y = parseFloat(p.style.top);
+
+        p.vx += gravityX * 0.1;
+        p.vy += gravityY * 0.1;
+
+        p.vx *= 0.98; // friction
+        p.vy *= 0.98;
+
+        x += p.vx;
+        y += p.vy;
+
+        // Wrap around screen
+        if (x < 0) x = window.innerWidth;
+        if (x > window.innerWidth) x = 0;
+        if (y < 0) y = window.innerHeight;
+        if (y > window.innerHeight) y = 0;
+
+        p.style.left = `${x}px`;
+        p.style.top = `${y}px`;
+      }
+      requestAnimationFrame(animate);
+    }
+
+    animate();
   </script>
 </body>
 </html>
