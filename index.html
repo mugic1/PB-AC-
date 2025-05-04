@@ -1,78 +1,137 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Gyroscope Gravity Particles</title>
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      background: black;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Visualization</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #000;
+            font-family: Arial, sans-serif;
+        }
 
-    .particle {
-      position: absolute;
-      border-radius: 50%;
-      background: white;
-      opacity: 0.8;
-    }
-  </style>
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        .overlay {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            mix-blend-mode: overlay;
+        }
+
+        .circle-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            animation: rotate 40s linear infinite;
+        }
+
+        .circle {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(40px);
+            opacity: 0.4;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
+    <canvas id="canvas"></canvas>
+    <div class="overlay">
+        <div class="circle-container">
+            <div class="circle" style="top: 20%; left: 30%; width: 300px; height: 300px; background: #7f00ff;"></div>
+            <div class="circle" style="top: 60%; left: 70%; width: 250px; height: 250px; background: #00ffff;"></div>
+        </div>
+    </div>
 
-  <script>
-    const numParticles = 100;
-    const particles = [];
-    let gravityX = 0;
-    let gravityY = 1; // initial downward gravity
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
 
-    for (let i = 0; i < numParticles; i++) {
-      const p = document.createElement("div");
-      p.className = "particle";
-      const size = Math.random() * 5 + 2;
-      p.style.width = p.style.height = `${size}px`;
-      p.style.left = `${Math.random() * window.innerWidth}px`;
-      p.style.top = `${Math.random() * window.innerHeight}px`;
-      p.vx = (Math.random() - 0.5) * 2;
-      p.vy = (Math.random() - 0.5) * 2;
-      document.body.appendChild(p);
-      particles.push(p);
-    }
+        // Particle class
+        class Particle {
+            constructor() {
+                this.reset();
+            }
 
-    window.addEventListener("deviceorientation", (event) => {
-      // gamma: left/right tilt [-90, 90], beta: front/back tilt [-180, 180]
-      gravityX = event.gamma / 45; // Normalize
-      gravityY = event.beta / 90;
-    });
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.radius = Math.random() * 2;
+                this.color = `hsl(${Math.random() * 360}, 70%, 70%)`;
+                this.velocity = {
+                    x: (Math.random() - 0.5) * 0.5,
+                    y: (Math.random() - 0.5) * 0.5
+                };
+                this.alpha = Math.random() * 0.5 + 0.5;
+            }
 
-    function animate() {
-      for (let p of particles) {
-        let x = parseFloat(p.style.left);
-        let y = parseFloat(p.style.top);
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.alpha;
+                ctx.fill();
+            }
 
-        p.vx += gravityX * 0.1;
-        p.vy += gravityY * 0.1;
+            update() {
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+                
+                if (this.x < 0 || this.x > canvas.width || 
+                    this.y < 0 || this.y > canvas.height) {
+                    this.reset();
+                }
+                this.draw();
+            }
+        }
 
-        p.vx *= 0.98; // friction
-        p.vy *= 0.98;
+        // Create particles
+        const particles = Array(200).fill().map(() => new Particle());
 
-        x += p.vx;
-        y += p.vy;
+        // Animate
+        function animate() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            particles.forEach(particle => particle.update());
+            
+            requestAnimationFrame(animate);
+        }
 
-        // Wrap around screen
-        if (x < 0) x = window.innerWidth;
-        if (x > window.innerWidth) x = 0;
-        if (y < 0) y = window.innerHeight;
-        if (y > window.innerHeight) y = 0;
+        animate();
 
-        p.style.left = `${x}px`;
-        p.style.top = `${y}px`;
-      }
-      requestAnimationFrame(animate);
-    }
-
-    animate();
-  </script>
+        // Add interactive element
+        canvas.addEventListener('mousemove', (e) => {
+            particles.forEach(particle => {
+                const dx = e.clientX - particle.x;
+                const dy = e.clientY - particle.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 100) {
+                    particle.velocity.x += dx * 0.0005;
+                    particle.velocity.y += dy * 0.0005;
+                }
+            });
+        });
+    </script>
 </body>
 </html>
