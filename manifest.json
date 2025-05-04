@@ -1,0 +1,24 @@
+{
+  "name": "IST PB-AC",
+  "short_name": "PB-AC",
+  "start_url": "/PB-AC/index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#37352f",
+  "description": "Indian Standard Time Clock with Productivity Features",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/PB-AC/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/PB-AC/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
