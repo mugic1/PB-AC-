@@ -3,197 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mobile Hypnosis</title>
+    <title>Floating Dreamscape</title>
     <style>
         * {
             margin: 0;
             padding: 0;
-            touch-action: none;
+            touch-action: manipulation;
         }
 
         body {
-            background: #000;
+            background: #0a0a1a;
             overflow: hidden;
+            height: 100vh;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .sky {
             position: fixed;
             width: 100%;
             height: 100%;
+            background: linear-gradient(to bottom, #020010, #1a0030);
         }
 
-        canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 2s infinite;
         }
 
-        .overlay {
-            position: fixed;
+        .island {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(30px);
+            opacity: 0.8;
+        }
+
+        .glow {
+            position: absolute;
             width: 100%;
             height: 100%;
+            background: radial-gradient(circle, #7f00ff, transparent 60%);
             mix-blend-mode: screen;
-            pointer-events: none;
             opacity: 0.3;
         }
 
-        .ripple {
-            position: absolute;
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(2deg); }
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
         }
     </style>
 </head>
 <body>
-    <canvas id="mainCanvas"></canvas>
-    <div class="overlay"></div>
+    <div class="sky" id="sky"></div>
+    <div class="glow"></div>
 
     <script>
-        const canvas = document.getElementById('mainCanvas');
-        const ctx = canvas.getContext('2d');
-        let touchStart = null;
-        let particles = [];
-        const ripplePool = [];
-        const colors = ['#ff3366', '#33ccff', '#ffcc33', '#9933ff'];
+        // Create starfield
+        const sky = document.getElementById('sky');
+        for(let i = 0; i < 150; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.width = Math.random() * 3 + 'px';
+            star.style.height = star.style.width;
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 2 + 's';
+            sky.appendChild(star);
+        }
 
-        // Mobile-first setup
+        // Generate floating islands
+        const colors = ['#ff99cc', '#99ffcc', '#cc99ff', '#ffcc99'];
+        for(let i = 0; i < 8; i++) {
+            const island = document.createElement('div');
+            island.className = 'island';
+            island.style.background = colors[i % colors.length];
+            island.style.width = Math.random() * 200 + 100 + 'px';
+            island.style.height = Math.random() * 100 + 50 + 'px';
+            island.style.left = Math.random() * 100 + '%';
+            island.style.top = Math.random() * 100 + '%';
+            island.style.animation = `float ${8 + Math.random() * 8}s infinite`;
+            sky.appendChild(island);
+        }
+
+        // Add atmospheric particles
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        document.body.appendChild(canvas);
+
         function resize() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
         }
         resize();
         window.addEventListener('resize', resize);
-        window.addEventListener('orientationchange', resize);
 
-        // Touch handling
-        canvas.addEventListener('touchstart', handleTouch);
-        canvas.addEventListener('touchmove', handleTouch);
-        canvas.addEventListener('touchend', clearTouch);
-
-        function handleTouch(e) {
-            e.preventDefault();
-            const touch = e.touches[0];
-            touchStart = { x: touch.clientX, y: touch.clientY };
-            createRipple(touch.clientX, touch.clientY);
-            moveParticles(touch.clientX, touch.clientY);
-        }
-
-        function clearTouch() {
-            touchStart = null;
-        }
-
-        // Ripple effects
-        function createRipple(x, y) {
-            const ripple = ripplePool.pop() || document.createElement('div');
-            ripple.className = 'ripple';
-            ripple.style.left = `${x}px`;
-            ripple.style.top = `${y}px`;
-            ripple.style.borderColor = colors[Math.floor(Math.random() * colors.length)];
-            document.body.appendChild(ripple);
-
-            anime({
-                targets: ripple,
-                scale: [0, 5],
-                opacity: [1, 0],
-                duration: 2000,
-                easing: 'easeOutExpo',
-                complete: () => {
-                    document.body.removeChild(ripple);
-                    ripplePool.push(ripple);
-                }
-            });
-        }
-
-        // Particle system
-        class Particle {
+        class Sparkle {
             constructor() {
                 this.reset();
-                this.size = Math.random() * 3 + 1;
             }
 
             reset() {
                 this.x = Math.random() * canvas.width;
                 this.y = Math.random() * canvas.height;
-                this.vx = (Math.random() - 0.5) * 0.5;
-                this.vy = (Math.random() - 0.5) * 0.5;
-                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.size = Math.random() * 2;
+                this.speed = Math.random() * 0.5 + 0.2;
+                this.alpha = Math.random() * 0.5 + 0.3;
             }
 
             draw() {
-                ctx.fillStyle = this.color;
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                 ctx.fill();
             }
 
             update() {
-                this.x += this.vx;
-                this.y += this.vy;
-                
-                // Soft boundary check
-                if (this.x < -50) this.x = canvas.width + 50;
-                if (this.x > canvas.width + 50) this.x = -50;
-                if (this.y < -50) this.y = canvas.height + 50;
-                if (this.y > canvas.height + 50) this.y = -50;
+                this.y -= this.speed;
+                if(this.y < -10) this.reset();
+                this.draw();
             }
         }
 
-        // Initialize particles
-        for (let i = 0; i < 150; i++) {
-            particles.push(new Particle());
-        }
-
-        // Touch interaction effect
-        function moveParticles(x, y) {
-            particles.forEach(p => {
-                const dx = x - p.x;
-                const dy = y - p.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < 150) {
-                    p.vx += dx * 0.0005;
-                    p.vy += dy * 0.0005;
-                }
-            });
-        }
-
-        // Gyroscope effect
-        let beta = 0;
-        let gamma = 0;
-        if (window.DeviceOrientationEvent) {
-            window.addEventListener('deviceorientation', (e) => {
-                beta = e.beta * 0.1;
-                gamma = e.gamma * 0.1;
-            });
-        }
+        // Create sparkles
+        const sparkles = Array(100).fill().map(() => new Sparkle());
 
         // Animation loop
         function animate() {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            particles.forEach(p => {
-                // Add device orientation movement
-                p.x += gamma * 0.3;
-                p.y += beta * 0.3;
-                p.update();
-                p.draw();
-            });
-
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            sparkles.forEach(sparkle => sparkle.update());
             requestAnimationFrame(animate);
         }
 
-        // Start animation
         animate();
 
-        // Background gradient animation
-        const overlay = document.querySelector('.overlay');
+        // Add ambient color shift
         let hue = 0;
         setInterval(() => {
-            hue = (hue + 0.5) % 360;
-            overlay.style.background = `
-                radial-gradient(circle at 50% 50%, 
-                    hsl(${hue}, 80%, 50%), 
-                    hsl(${(hue + 120) % 360}, 80%, 30%), 
-                    transparent 60%)
-            `;
+            hue = (hue + 0.3) % 360;
+            document.body.style.backgroundColor = `hsl(${hue}, 30%, 5%)`;
         }, 50);
     </script>
 </body>
