@@ -3,134 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cosmic Visualization</title>
+    <title>Infinite Illusion</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
             background: #000;
-            font-family: Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
         }
 
         canvas {
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
         }
 
-        .overlay {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
+        .hypnotic {
+            position: absolute;
+            width: 150vmax;
+            height: 150vmax;
+            animation: spin 40s linear infinite;
+            opacity: 0.15;
             mix-blend-mode: overlay;
         }
 
-        .circle-container {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            animation: rotate 40s linear infinite;
-        }
-
-        .circle {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(40px);
-            opacity: 0.4;
-        }
-
-        @keyframes rotate {
+        @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
+        }
+
+        .recursive-circle {
+            position: absolute;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
         }
     </style>
 </head>
 <body>
-    <canvas id="canvas"></canvas>
-    <div class="overlay">
-        <div class="circle-container">
-            <div class="circle" style="top: 20%; left: 30%; width: 300px; height: 300px; background: #7f00ff;"></div>
-            <div class="circle" style="top: 60%; left: 70%; width: 250px; height: 250px; background: #00ffff;"></div>
-        </div>
+    <div class="container">
+        <canvas id="mainCanvas"></canvas>
+        <div class="hypnotic" id="hypnoticPattern"></div>
     </div>
 
     <script>
-        const canvas = document.getElementById('canvas');
+        const canvas = document.getElementById('mainCanvas');
         const ctx = canvas.getContext('2d');
-        
+        let time = 0;
+
         // Set canvas size
-        function resizeCanvas() {
+        function resize() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
         }
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
+        resize();
+        window.addEventListener('resize', resize);
 
-        // Particle class
-        class Particle {
-            constructor() {
-                this.reset();
-            }
+        // Create recursive triangles
+        function drawRecursiveTri(x, y, size, depth) {
+            if(depth === 0) return;
+            
+            ctx.beginPath();
+            ctx.moveTo(x - size/2, y + size/2);
+            ctx.lineTo(x + size/2, y + size/2);
+            ctx.lineTo(x, y - size/2);
+            ctx.closePath();
+            
+            const hue = (time * 2 + depth * 30) % 360;
+            ctx.strokeStyle = `hsla(${hue}, 70%, 50%, ${0.2 + depth * 0.1})`;
+            ctx.stroke();
 
-            reset() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.radius = Math.random() * 2;
-                this.color = `hsl(${Math.random() * 360}, 70%, 70%)`;
-                this.velocity = {
-                    x: (Math.random() - 0.5) * 0.5,
-                    y: (Math.random() - 0.5) * 0.5
-                };
-                this.alpha = Math.random() * 0.5 + 0.5;
-            }
+            const newSize = size * 0.7;
+            drawRecursiveTri(x - size/4, y + size/4, newSize, depth - 1);
+            drawRecursiveTri(x + size/4, y + size/4, newSize, depth - 1);
+            drawRecursiveTri(x, y - size/4, newSize, depth - 1);
+        }
 
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.globalAlpha = this.alpha;
-                ctx.fill();
-            }
-
-            update() {
-                this.x += this.velocity.x;
-                this.y += this.velocity.y;
-                
-                if (this.x < 0 || this.x > canvas.width || 
-                    this.y < 0 || this.y > canvas.height) {
-                    this.reset();
-                }
-                this.draw();
+        // Create moiré pattern
+        function createHypnotic() {
+            const pattern = document.getElementById('hypnoticPattern');
+            pattern.innerHTML = '';
+            
+            for(let i = 0; i < 30; i++) {
+                const circle = document.createElement('div');
+                circle.className = 'recursive-circle';
+                circle.style.width = `${100 - i * 3}%`;
+                circle.style.height = `${100 - i * 3}%`;
+                circle.style.animationDelay = `${i * 0.2}s`;
+                pattern.appendChild(circle);
             }
         }
 
-        // Create particles
-        const particles = Array(200).fill().map(() => new Particle());
+        // Animated grid
+        function drawWarpedGrid() {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            const spacing = 50;
+            const warpIntensity = 30;
 
-        // Animate
+            for(let x = 0; x < canvas.width; x += spacing) {
+                ctx.beginPath();
+                for(let y = 0; y < canvas.height; y += 1) {
+                    const waveX = Math.sin(y * 0.02 + time) * warpIntensity;
+                    ctx.lineTo(x + waveX, y);
+                }
+                ctx.stroke();
+            }
+
+            for(let y = 0; y < canvas.height; y += spacing) {
+                ctx.beginPath();
+                for(let x = 0; x < canvas.width; x += 1) {
+                    const waveY = Math.cos(x * 0.02 + time) * warpIntensity;
+                    ctx.lineTo(x, y + waveY);
+                }
+                ctx.stroke();
+            }
+        }
+
+        // Animation loop
         function animate() {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            particles.forEach(particle => particle.update());
+            // Save transform
+            ctx.save();
+            ctx.translate(canvas.width/2, canvas.height/2);
             
+            // Draw rotating recursive triangles
+            ctx.rotate(time * 0.002);
+            drawRecursiveTri(0, 0, 400, 5);
+            ctx.restore();
+
+            // Draw warped grid
+            drawWarpedGrid();
+
+            time += 1;
             requestAnimationFrame(animate);
         }
 
+        createHypnotic();
         animate();
 
-        // Add interactive element
-        canvas.addEventListener('mousemove', (e) => {
-            particles.forEach(particle => {
-                const dx = e.clientX - particle.x;
-                const dy = e.clientY - particle.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < 100) {
-                    particle.velocity.x += dx * 0.0005;
-                    particle.velocity.y += dy * 0.0005;
-                }
-            });
+        // Mouse interaction
+        const mouse = { x: 0, y: 0 };
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        // Add depth effect
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX / window.innerWidth - 0.5;
+            const y = e.clientY / window.innerHeight - 0.5;
+            
+            document.documentElement.style.transform = `
+                perspective(1000px)
+                rotateX(${y * 5}deg)
+                rotateY(${x * 5}deg)
+            `;
         });
     </script>
 </body>
