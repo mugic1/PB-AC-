@@ -2,179 +2,199 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Infinite Illusion</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mobile Hypnosis</title>
     <style>
-        body {
+        * {
             margin: 0;
-            overflow: hidden;
-            background: #000;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            padding: 0;
+            touch-action: none;
         }
 
-        .container {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
+        body {
+            background: #000;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
         }
 
         canvas {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
         }
 
-        .hypnotic {
-            position: absolute;
-            width: 150vmax;
-            height: 150vmax;
-            animation: spin 40s linear infinite;
-            opacity: 0.15;
-            mix-blend-mode: overlay;
+        .overlay {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            mix-blend-mode: screen;
+            pointer-events: none;
+            opacity: 0.3;
         }
 
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .recursive-circle {
+        .ripple {
             position: absolute;
             border: 2px solid rgba(255, 255, 255, 0.1);
             border-radius: 50%;
-            animation: pulse 8s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.2); }
+            transform: translate(-50%, -50%);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <canvas id="mainCanvas"></canvas>
-        <div class="hypnotic" id="hypnoticPattern"></div>
-    </div>
+    <canvas id="mainCanvas"></canvas>
+    <div class="overlay"></div>
 
     <script>
         const canvas = document.getElementById('mainCanvas');
         const ctx = canvas.getContext('2d');
-        let time = 0;
+        let touchStart = null;
+        let particles = [];
+        const ripplePool = [];
+        const colors = ['#ff3366', '#33ccff', '#ffcc33', '#9933ff'];
 
-        // Set canvas size
+        // Mobile-first setup
         function resize() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
         }
         resize();
         window.addEventListener('resize', resize);
+        window.addEventListener('orientationchange', resize);
 
-        // Create recursive triangles
-        function drawRecursiveTri(x, y, size, depth) {
-            if(depth === 0) return;
-            
-            ctx.beginPath();
-            ctx.moveTo(x - size/2, y + size/2);
-            ctx.lineTo(x + size/2, y + size/2);
-            ctx.lineTo(x, y - size/2);
-            ctx.closePath();
-            
-            const hue = (time * 2 + depth * 30) % 360;
-            ctx.strokeStyle = `hsla(${hue}, 70%, 50%, ${0.2 + depth * 0.1})`;
-            ctx.stroke();
+        // Touch handling
+        canvas.addEventListener('touchstart', handleTouch);
+        canvas.addEventListener('touchmove', handleTouch);
+        canvas.addEventListener('touchend', clearTouch);
 
-            const newSize = size * 0.7;
-            drawRecursiveTri(x - size/4, y + size/4, newSize, depth - 1);
-            drawRecursiveTri(x + size/4, y + size/4, newSize, depth - 1);
-            drawRecursiveTri(x, y - size/4, newSize, depth - 1);
+        function handleTouch(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            touchStart = { x: touch.clientX, y: touch.clientY };
+            createRipple(touch.clientX, touch.clientY);
+            moveParticles(touch.clientX, touch.clientY);
         }
 
-        // Create moiré pattern
-        function createHypnotic() {
-            const pattern = document.getElementById('hypnoticPattern');
-            pattern.innerHTML = '';
-            
-            for(let i = 0; i < 30; i++) {
-                const circle = document.createElement('div');
-                circle.className = 'recursive-circle';
-                circle.style.width = `${100 - i * 3}%`;
-                circle.style.height = `${100 - i * 3}%`;
-                circle.style.animationDelay = `${i * 0.2}s`;
-                pattern.appendChild(circle);
+        function clearTouch() {
+            touchStart = null;
+        }
+
+        // Ripple effects
+        function createRipple(x, y) {
+            const ripple = ripplePool.pop() || document.createElement('div');
+            ripple.className = 'ripple';
+            ripple.style.left = `${x}px`;
+            ripple.style.top = `${y}px`;
+            ripple.style.borderColor = colors[Math.floor(Math.random() * colors.length)];
+            document.body.appendChild(ripple);
+
+            anime({
+                targets: ripple,
+                scale: [0, 5],
+                opacity: [1, 0],
+                duration: 2000,
+                easing: 'easeOutExpo',
+                complete: () => {
+                    document.body.removeChild(ripple);
+                    ripplePool.push(ripple);
+                }
+            });
+        }
+
+        // Particle system
+        class Particle {
+            constructor() {
+                this.reset();
+                this.size = Math.random() * 3 + 1;
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                // Soft boundary check
+                if (this.x < -50) this.x = canvas.width + 50;
+                if (this.x > canvas.width + 50) this.x = -50;
+                if (this.y < -50) this.y = canvas.height + 50;
+                if (this.y > canvas.height + 50) this.y = -50;
             }
         }
 
-        // Animated grid
-        function drawWarpedGrid() {
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-            const spacing = 50;
-            const warpIntensity = 30;
+        // Initialize particles
+        for (let i = 0; i < 150; i++) {
+            particles.push(new Particle());
+        }
 
-            for(let x = 0; x < canvas.width; x += spacing) {
-                ctx.beginPath();
-                for(let y = 0; y < canvas.height; y += 1) {
-                    const waveX = Math.sin(y * 0.02 + time) * warpIntensity;
-                    ctx.lineTo(x + waveX, y);
+        // Touch interaction effect
+        function moveParticles(x, y) {
+            particles.forEach(p => {
+                const dx = x - p.x;
+                const dy = y - p.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 150) {
+                    p.vx += dx * 0.0005;
+                    p.vy += dy * 0.0005;
                 }
-                ctx.stroke();
-            }
+            });
+        }
 
-            for(let y = 0; y < canvas.height; y += spacing) {
-                ctx.beginPath();
-                for(let x = 0; x < canvas.width; x += 1) {
-                    const waveY = Math.cos(x * 0.02 + time) * warpIntensity;
-                    ctx.lineTo(x, y + waveY);
-                }
-                ctx.stroke();
-            }
+        // Gyroscope effect
+        let beta = 0;
+        let gamma = 0;
+        if (window.DeviceOrientationEvent) {
+            window.addEventListener('deviceorientation', (e) => {
+                beta = e.beta * 0.1;
+                gamma = e.gamma * 0.1;
+            });
         }
 
         // Animation loop
         function animate() {
             ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Save transform
-            ctx.save();
-            ctx.translate(canvas.width/2, canvas.height/2);
-            
-            // Draw rotating recursive triangles
-            ctx.rotate(time * 0.002);
-            drawRecursiveTri(0, 0, 400, 5);
-            ctx.restore();
 
-            // Draw warped grid
-            drawWarpedGrid();
+            particles.forEach(p => {
+                // Add device orientation movement
+                p.x += gamma * 0.3;
+                p.y += beta * 0.3;
+                p.update();
+                p.draw();
+            });
 
-            time += 1;
             requestAnimationFrame(animate);
         }
 
-        createHypnotic();
+        // Start animation
         animate();
 
-        // Mouse interaction
-        const mouse = { x: 0, y: 0 };
-        window.addEventListener('mousemove', (e) => {
-            mouse.x = e.clientX;
-            mouse.y = e.clientY;
-        });
-
-        // Add depth effect
-        document.addEventListener('mousemove', (e) => {
-            const x = e.clientX / window.innerWidth - 0.5;
-            const y = e.clientY / window.innerHeight - 0.5;
-            
-            document.documentElement.style.transform = `
-                perspective(1000px)
-                rotateX(${y * 5}deg)
-                rotateY(${x * 5}deg)
+        // Background gradient animation
+        const overlay = document.querySelector('.overlay');
+        let hue = 0;
+        setInterval(() => {
+            hue = (hue + 0.5) % 360;
+            overlay.style.background = `
+                radial-gradient(circle at 50% 50%, 
+                    hsl(${hue}, 80%, 50%), 
+                    hsl(${(hue + 120) % 360}, 80%, 30%), 
+                    transparent 60%)
             `;
-        });
+        }, 50);
     </script>
 </body>
 </html>
