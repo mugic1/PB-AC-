@@ -8,70 +8,56 @@
     body {
       margin: 0;
       overflow: hidden;
-      background: black;
+      background: #000;
+      position: relative;
+      height: 100vh;
     }
-    canvas {
-      display: block;
+
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.8;
+      animation: fall linear infinite;
+    }
+
+    @keyframes fall {
+      0% {
+        transform: translateY(-10px);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(110vh);
+        opacity: 0;
+      }
     }
   </style>
 </head>
 <body>
-  <canvas id="particleCanvas"></canvas>
 
   <script>
-    const canvas = document.getElementById("particleCanvas");
-    const ctx = canvas.getContext("2d");
+    const colors = ['#ffffff', '#ffcc00', '#00ffff', '#ff00ff', '#00ff00', '#ff6666'];
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    function createParticle() {
+      const particle = document.createElement("div");
+      const size = Math.random() * 5 + 2;
+      particle.classList.add("particle");
+      particle.style.width = `${size}px`;
+      particle.style.height = `${size}px`;
+      particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+      particle.style.left = `${Math.random() * 100}vw`;
+      particle.style.animationDuration = `${Math.random() * 3 + 2}s`;
+      particle.style.animationDelay = `${Math.random() * 5}s`;
 
-    window.addEventListener("resize", () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    });
+      document.body.appendChild(particle);
 
-    class Particle {
-      constructor() {
-        this.reset();
-      }
-
-      reset() {
-        this.x = Math.random() * canvas.width;
-        this.y = -Math.random() * canvas.height;
-        this.radius = Math.random() * 3 + 1;
-        this.speed = Math.random() * 1.5 + 0.5;
-        this.gravity = 0.05;
-        this.color = `hsl(${Math.random() * 360}, 100%, 70%)`;
-      }
-
-      update() {
-        this.speed += this.gravity;
-        this.y += this.speed;
-        if (this.y > canvas.height) {
-          this.reset();
-        }
-      }
-
-      draw() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fillStyle = this.color;
-        ctx.fill();
-      }
+      // Remove after animation
+      setTimeout(() => {
+        particle.remove();
+      }, 7000);
     }
 
-    const particles = Array.from({ length: 150 }, () => new Particle());
-
-    function animate() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach(p => {
-        p.update();
-        p.draw();
-      });
-      requestAnimationFrame(animate);
-    }
-
-    animate();
+    // Continuously create particles
+    setInterval(createParticle, 100);
   </script>
 </body>
 </html>
