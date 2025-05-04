@@ -1,416 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IST PB-AC</title>
-    <meta name="theme-color" content="#ffffff">
-    
-    <!-- PWA Requirements -->
-    <link rel="manifest" href="/PB-AC/manifest.json">
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="logo.png">
-    
-    <style>
-        /* Base styles optimized for mobile */
-        body {
-            margin: 0;
-            padding: 4vw;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background-color: transparent;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            box-sizing: border-box;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 95vw;
-            display: flex;
-            flex-direction: column;
-            gap: 4vw;
-        }
-
-        /* Clock styles */
-        .clock {
-            width: 60vw;
-            height: 60vw;
-            max-width: 250px;
-            max-height: 250px;
-            border: 1.5vw solid #37352f;
-            border-radius: 50%;
-            position: relative;
-            margin: 0 auto;
-            background-color: #fff;
-            box-shadow: 0 1vw 3vw rgba(0, 0, 0, 0.1);
-        }
-
-        .clock-face {
-            width: 100%;
-            height: 100%;
-            position: relative;
-        }
-
-        .hand {
-            position: absolute;
-            bottom: 50%;
-            left: 50%;
-            transform-origin: 50% 100%;
-            border-radius: 1vw;
-            transition: transform 0.3s cubic-bezier(0.4, 2.3, 0.3, 1);
-        }
-
-        .hour-hand {
-            width: 1.5vw;
-            height: 15vw;
-            margin-left: -0.75vw;
-            background-color: #37352f;
-        }
-
-        .minute-hand {
-            width: 1vw;
-            height: 22vw;
-            margin-left: -0.5vw;
-            background-color: #37352f;
-        }
-
-        .second-hand {
-            width: 0.5vw;
-            height: 25vw;
-            margin-left: -0.25vw;
-            background-color: #e54d42;
-        }
-
-        .center-circle {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 2.5vw;
-            height: 2.5vw;
-            background-color: #37352f;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 10;
-        }
-
-        .number {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            text-align: center;
-            font-size: 4vw;
-            font-weight: 500;
-            color: #37352f;
-        }
-
-        .number span {
-            display: inline-block;
-            position: absolute;
-        }
-
-        /* Todo list styles */
-        .todo-container {
-            width: 90%;
-            margin: 2vw 0;
-            padding: 4vw;
-            background-color: #f8f8f8;
-            border-radius: 3vw;
-            box-shadow: 0 1vw 2vw rgba(0, 0, 0, 0.05);
-        }
-
-        .todo-title {
-            font-size: 5vw;
-            font-weight: bold;
-            margin-bottom: 3vw;
-            color: #e54d42;
-            text-align: center;
-        }
-
-        .todo-list {
-            list-style-type: none;
-            padding: 0;
-            margin: 0;
-            font-size: 4vw;
-        }
-
-        .todo-item {
-            margin: 2vw 0;
-            display: flex;
-            align-items: center;
-        }
-
-        .todo-item input {
-            margin-right: 3vw;
-            transform: scale(1.5);
-        }
-
-        /* Time display styles */
-        .time-display {
-            text-align: center;
-        }
-
-        .timezone {
-            font-size: 4vw;
-            font-weight: 500;
-            color: #37352f;
-            margin-bottom: 1vw;
-        }
-
-        .digital-time {
-            font-size: 5vw;
-            font-weight: 600;
-            color: #37352f;
-            font-family: 'SF Mono', Menlo, monospace;
-        }
-
-        /* Progress bar styles */
-        .progress-container {
-            width: 100%;
-            margin-top: 3vw;
-        }
-
-        .progress-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 2vw;
-            font-size: 3.5vw;
-            color: #37352f;
-        }
-
-        .progress-bar {
-            height: 3vw;
-            background-color: #f0f0f0;
-            border-radius: 1.5vw;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #ffff, #8BC);
-            border-radius: 1.5vw;
-            transition: width 0.5s ease;
-        }
-
-        .week-days {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 2vw;
-            font-size: 3vw;
-            color: #666;
-        }
-
-        .day {
-            text-align: center;
-            width: 14%;
-        }
-
-        .current-day {
-            font-weight: bold;
-            color: #37352f;
-        }
-
-        /* Clock numbers positioning */
-        .number-12 { top: 3vw; left: 50%; transform: translateX(-50%); }
-        .number-3 { top: 50%; right: 3vw; transform: translateY(-50%); }
-        .number-6 { bottom: 3vw; left: 50%; transform: translateX(-50%); }
-        .number-9 { top: 50%; left: 3vw; transform: translateY(-50%); }
-        
-        /* Install button styles */
-        #installBtn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 10px 15px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 14px;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            display: none; /* Hidden by default */
-            z-index: 1000;
-        }
-        
-        #installBtn:hover {
-            background-color: #45a049;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Falling Particles</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: black;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
 </head>
 <body>
-    <!-- Install Button (will appear when PWA is installable) -->
-    <button id="installBtn">Install App</button>
-    
-    <div class="container">
-        <div class="clock">
-            <div class="clock-face">
-                <div class="hand hour-hand"></div>
-                <div class="hand minute-hand"></div>
-                <div class="hand second-hand"></div>
-                <div class="center-circle"></div>
-                
-                <div class="number">
-                    <span class="number-12">12</span>
-                    <span class="number-3">3</span>
-                    <span class="number-6">6</span>
-                    <span class="number-9">9</span>
-                </div>
-            </div>
-        </div>
-        
-        <div class="time-display">
-            <div class="timezone">Indian Standard Time (IST)</div>
-            <div class="digital-time" id="digitalTime">00:00:00</div>
-        </div>
-        
-        <!-- Added Todo List Section -->
-        <div class="todo-container">
-            <div class="todo-title">Things to do🔥</div>
-            <ul class="todo-list">
-                <li class="todo-item"><input type="checkbox"> No PMP</li>
-                <li class="todo-item"><input type="checkbox"> Do meditation for 5 min</li>
-                <li class="todo-item"><input type="checkbox"> Salamba Sirsasana</li>
-                <li class="todo-item"><input type="checkbox"> Bath</li>
-                <li class="todo-item"><input type="checkbox"> Study</li>
-            </ul>
-        </div>
-        
-        <div class="progress-container">
-            <div class="progress-header">
-                <span>Week Progress</span>
-                <span id="weekProgress">0%</span>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
-            <div class="week-days" id="weekDays"></div>
-        </div>
-    </div>
+  <canvas id="particleCanvas"></canvas>
 
-    <script>
-        // Days of week for the progress bar
-        const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        
-        // Initialize clock and progress bar
-        function updateAll() {
-            updateClock();
-            updateWeekProgress();
-            requestAnimationFrame(updateAll);
+  <script>
+    const canvas = document.getElementById("particleCanvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    window.addEventListener("resize", () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = -Math.random() * canvas.height;
+        this.radius = Math.random() * 3 + 1;
+        this.speed = Math.random() * 1.5 + 0.5;
+        this.gravity = 0.05;
+        this.color = `hsl(${Math.random() * 360}, 100%, 70%)`;
+      }
+
+      update() {
+        this.speed += this.gravity;
+        this.y += this.speed;
+        if (this.y > canvas.height) {
+          this.reset();
         }
-        
-        // Clock function
-        function updateClock() {
-            // Get current time in Indian Standard Time (UTC+5:30)
-            const now = new Date();
-            const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-            const istOffset = 5.5 * 60 * 60000; // IST is UTC+5:30
-            const istTime = new Date(utc + istOffset);
-            
-            const hours = istTime.getHours();
-            const minutes = istTime.getMinutes();
-            const seconds = istTime.getSeconds();
-            
-            // Calculate degrees for clock hands
-            const hourDegrees = (hours % 12) * 30 + minutes * 0.5;
-            const minuteDegrees = minutes * 6 + seconds * 0.1;
-            const secondDegrees = seconds * 6;
-            
-            // Apply rotations
-            document.querySelector('.hour-hand').style.transform = `rotate(${hourDegrees}deg)`;
-            document.querySelector('.minute-hand').style.transform = `rotate(${minuteDegrees}deg)`;
-            document.querySelector('.second-hand').style.transform = `rotate(${secondDegrees}deg)`;
-            
-            // Update digital time display
-            const formattedHours = hours.toString().padStart(2, '0');
-            const formattedMinutes = minutes.toString().padStart(2, '0');
-            const formattedSeconds = seconds.toString().padStart(2, '0');
-            document.getElementById('digitalTime').textContent = 
-                `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
-        }
-        
-        // Weekly progress function
-        function updateWeekProgress() {
-            const now = new Date();
-            const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-            const istOffset = 5.5 * 60 * 60000;
-            const istTime = new Date(utc + istOffset);
-            
-            const currentDay = istTime.getDay(); // 0 (Sun) to 6 (Sat)
-            const currentHour = istTime.getHours();
-            const currentMinute = istTime.getMinutes();
-            
-            // Calculate progress through the week (Monday 00:00 to Sunday 23:59)
-            let daysPassed = currentDay - 1; // Days since Monday
-            if (daysPassed < 0) daysPassed = 6; // It's Sunday
-            
-            const dayProgress = (currentHour * 60 + currentMinute) / (24 * 60);
-            const totalProgress = (daysPassed + dayProgress) / 7;
-            
-            // Update progress bar
-            const progressPercent = Math.round(totalProgress * 100);
-            document.getElementById('progressFill').style.width = `${progressPercent}%`;
-            document.getElementById('weekProgress').textContent = `${progressPercent}%`;
-            
-            // Update day markers
-            const weekDaysContainer = document.getElementById('weekDays');
-            weekDaysContainer.innerHTML = '';
-            
-            daysOfWeek.forEach((day, index) => {
-                const dayElement = document.createElement('div');
-                dayElement.className = `day ${index === currentDay ? 'current-day' : ''}`;
-                dayElement.textContent = day;
-                weekDaysContainer.appendChild(dayElement);
-            });
-        }
-        
-        // Initialize day markers and start updates
-        updateWeekProgress();
-        updateAll();
-        
-        // PWA Installation Handling
-        let deferredPrompt;
-        const installBtn = document.getElementById('installBtn');
-        
-        window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent Chrome 67 and earlier from automatically showing the prompt
-            e.preventDefault();
-            // Stash the event so it can be triggered later
-            deferredPrompt = e;
-            // Show the install button
-            installBtn.style.display = 'block';
-            
-            installBtn.addEventListener('click', () => {
-                // Hide the install button
-                installBtn.style.display = 'none';
-                // Show the install prompt
-                deferredPrompt.prompt();
-                // Wait for the user to respond to the prompt
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        console.log('User accepted install');
-                    } else {
-                        console.log('User dismissed install');
-                    }
-                    deferredPrompt = null;
-                });
-            });
-        });
-        
-        // Register Service Worker
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(registration => {
-                        console.log('ServiceWorker registration successful');
-                    })
-                    .catch(err => {
-                        console.log('ServiceWorker registration failed: ', err);
-                    });
-            });
-        }
-    </script>
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+      }
+    }
+
+    const particles = Array.from({ length: 150 }, () => new Particle());
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  </script>
 </body>
 </html>
