@@ -2,376 +2,140 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Infinite Imaginary Visualization</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Illusional Light Animation</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
+            margin: 0;
             overflow: hidden;
-            background-color: #0a0a12;
-            color: #e0e0ff;
-            font-family: 'Arial', sans-serif;
-            touch-action: none;
-            height: 100vh;
-            width: 100vw;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background: #000;
+            cursor: none;
         }
-
-        canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 1;
-        }
-
-        .info {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            z-index: 10;
-            background-color: rgba(0, 0, 20, 0.7);
-            padding: 10px 15px;
-            border-radius: 10px;
-            font-size: 14px;
-            backdrop-filter: blur(5px);
-            border: 1px solid #303050;
-        }
-
-        .toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 10;
-            background-color: rgba(0, 0, 20, 0.7);
-            padding: 10px 15px;
-            border-radius: 10px;
-            font-size: 14px;
-            backdrop-filter: blur(5px);
-            border: 1px solid #303050;
-            color: #e0e0ff;
-            cursor: pointer;
-        }
-
-        .loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #0a0a12;
-            z-index: 100;
-            transition: opacity 1s;
-        }
-
-        .loading-text {
-            font-size: 24px;
-            color: #a0a0ff;
-        }
-
-        .loading-bar {
+        
+        .particle {
             position: absolute;
-            bottom: 40%;
-            width: 200px;
-            height: 4px;
-            background-color: #303050;
-            border-radius: 2px;
-            overflow: hidden;
+            border-radius: 50%;
+            pointer-events: none;
+            mix-blend-mode: screen;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease-out;
         }
-
-        .loading-progress {
-            height: 100%;
-            width: 0%;
-            background-color: #a0a0ff;
-            transition: width 0.3s;
+        
+        #cursor {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            mix-blend-mode: screen;
+            filter: blur(5px);
         }
     </style>
 </head>
 <body>
-    <canvas id="canvas"></canvas>
-    <div class="info">Move your device to explore the infinite</div>
-    <button class="toggle" id="toggleGyro">Enable Gyroscope</button>
-    
-    <div class="loading" id="loading">
-        <div>
-            <div class="loading-text">Initializing Universe</div>
-            <div class="loading-bar"><div class="loading-progress" id="progress"></div></div>
-        </div>
-    </div>
-
+    <div id="cursor"></div>
     <script>
-        // Loading screen
-        const loadingScreen = document.getElementById('loading');
-        const progressBar = document.getElementById('progress');
-        const toggleGyroBtn = document.getElementById('toggleGyro');
+        const colors = [
+            'rgba(255, 100, 100, 0.8)',
+            'rgba(100, 255, 100, 0.8)',
+            'rgba(100, 100, 255, 0.8)',
+            'rgba(255, 255, 100, 0.8)',
+            'rgba(255, 100, 255, 0.8)',
+            'rgba(100, 255, 255, 0.8)'
+        ];
         
-        // Simulate loading
-        let progress = 0;
-        const loadingInterval = setInterval(() => {
-            progress += Math.random() * 10;
-            if (progress >= 100) {
-                progress = 100;
-                clearInterval(loadingInterval);
-                setTimeout(() => {
-                    loadingScreen.style.opacity = '0';
-                    setTimeout(() => {
-                        loadingScreen.style.display = 'none';
-                    }, 1000);
-                }, 500);
-            }
-            progressBar.style.width = `${progress}%`;
-        }, 100);
-
-        // Main visualization
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
+        const particleCount = 50;
+        const particles = [];
+        const cursor = document.getElementById('cursor');
         
-        // Set canvas size
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-        
-        // Configuration
-        const config = {
-            particleCount: 1500,
-            maxDistance: 500,
-            baseSpeed: 0.2,
-            gyroSensitivity: 0.05,
-            gyroEnabled: false,
-            colorPalette: [
-                '#4a3aff', '#6a5acd', '#9370db', 
-                '#a0a0ff', '#b0e0e6', '#add8e6',
-                '#87cefa', '#00bfff', '#1e90ff'
-            ],
-            connectionOpacity: 0.15,
-            starDensity: 0.0005
-        };
-        
-        // Particles array
-        let particles = [];
-        let stars = [];
-        
-        // Gyroscope data
-        let gyroData = {
-            alpha: 0,
-            beta: 0,
-            gamma: 0
-        };
-        
-        // Mouse position (fallback for desktop)
-        let mouseX = 0;
-        let mouseY = 0;
-        
-        // Initialize particles
-        function initParticles() {
-            particles = [];
-            for (let i = 0; i < config.particleCount; i++) {
-                particles.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    z: Math.random() * config.maxDistance * 2 - config.maxDistance,
-                    size: Math.random() * 2 + 1,
-                    speed: Math.random() * config.baseSpeed + config.baseSpeed * 0.5,
-                    color: config.colorPalette[Math.floor(Math.random() * config.colorPalette.length)],
-                    orbitX: (Math.random() - 0.5) * canvas.width * 0.5,
-                    orbitY: (Math.random() - 0.5) * canvas.height * 0.5
-                });
-            }
-        }
-        
-        // Initialize stars (background)
-        function initStars() {
-            stars = [];
-            const starCount = Math.floor(canvas.width * canvas.height * config.starDensity);
+        // Create particles
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
             
-            for (let i = 0; i < starCount; i++) {
-                stars.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    size: Math.random() * 1.5,
-                    opacity: Math.random() * 0.8 + 0.2,
-                    twinkleSpeed: Math.random() * 0.02
-                });
-            }
-        }
-        
-        // Project 3D position to 2D
-        function project(x, y, z) {
-            const scale = config.maxDistance / (config.maxDistance + z);
-            return {
-                x: x * scale + canvas.width / 2,
-                y: y * scale + canvas.height / 2,
-                scale: scale
-            };
-        }
-        
-        // Draw particles
-        function drawParticles() {
-            particles.forEach(p => {
-                // Apply gyro or mouse movement
-                let moveX, moveY;
-                
-                if (config.gyroEnabled) {
-                    moveX = gyroData.gamma * config.gyroSensitivity;
-                    moveY = gyroData.beta * config.gyroSensitivity;
-                } else {
-                    moveX = (mouseX - canvas.width / 2) * 0.0005;
-                    moveY = (mouseY - canvas.height / 2) * 0.0005;
-                }
-                
-                // Update position with orbit pattern
-                const time = Date.now() * 0.001;
-                p.x = canvas.width / 2 + Math.sin(time * p.speed * 0.5) * p.orbitX + moveX * p.z;
-                p.y = canvas.height / 2 + Math.cos(time * p.speed * 0.3) * p.orbitY + moveY * p.z;
-                p.z += p.speed;
-                
-                // Reset particles that go too far
-                if (p.z > config.maxDistance) {
-                    p.z = -config.maxDistance;
-                } else if (p.z < -config.maxDistance) {
-                    p.z = config.maxDistance;
-                }
-                
-                // Project to 2D
-                const pos = project(p.x - canvas.width / 2, p.y - canvas.height / 2, p.z);
-                
-                // Draw particle
-                ctx.beginPath();
-                ctx.arc(pos.x, pos.y, p.size * pos.scale, 0, Math.PI * 2);
-                ctx.fillStyle = p.color;
-                ctx.globalAlpha = 0.8 * pos.scale;
-                ctx.fill();
-                
-                // Draw connections to nearby particles
-                drawConnections(p, pos);
-            });
-        }
-        
-        // Draw connections between particles
-        function drawConnections(particle, pos) {
-            particles.forEach(other => {
-                if (particle === other) return;
-                
-                const dx = particle.x - other.x;
-                const dy = particle.y - other.y;
-                const dz = particle.z - other.z;
-                const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-                
-                if (dist < config.maxDistance * 0.5) {
-                    const otherPos = project(other.x - canvas.width / 2, other.y - canvas.height / 2, other.z);
-                    const opacity = (1 - dist / (config.maxDistance * 0.5)) * config.connectionOpacity * pos.scale * otherPos.scale;
-                    
-                    if (opacity > 0.01) {
-                        ctx.beginPath();
-                        ctx.moveTo(pos.x, pos.y);
-                        ctx.lineTo(otherPos.x, otherPos.y);
-                        ctx.strokeStyle = particle.color;
-                        ctx.globalAlpha = opacity;
-                        ctx.lineWidth = 0.5;
-                        ctx.stroke();
-                    }
-                }
-            });
-        }
-        
-        // Draw starfield background
-        function drawStars() {
-            const time = Date.now();
+            // Random properties
+            const size = Math.random() * 15 + 5;
+            const color = colors[Math.floor(Math.random() * colors.length)];
             
-            stars.forEach(star => {
-                // Twinkle effect
-                const twinkle = Math.sin(time * star.twinkleSpeed) * 0.5 + 0.5;
-                const currentOpacity = star.opacity * (0.5 + twinkle * 0.5);
-                
-                ctx.beginPath();
-                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 255, 255, ${currentOpacity})`;
-                ctx.fill();
-            });
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.background = color;
+            particle.style.boxShadow = `0 0 ${size}px ${size/2}px ${color}`;
+            
+            // Initial position
+            particle.style.left = `${Math.random() * 100}vw`;
+            particle.style.top = `${Math.random() * 100}vh`;
+            
+            // Store velocity
+            particle.vx = Math.random() * 2 - 1;
+            particle.vy = Math.random() * 2 - 1;
+            
+            document.body.appendChild(particle);
+            particles.push(particle);
         }
+        
+        // Mouse movement
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = `${e.clientX}px`;
+            cursor.style.top = `${e.clientY}px`;
+            
+            // Particles react to mouse
+            particles.forEach(particle => {
+                const particleX = parseFloat(particle.style.left);
+                const particleY = parseFloat(particle.style.top);
+                
+                const dx = e.clientX - particleX;
+                const dy = e.clientY - particleY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < 150) {
+                    // Repel particles from cursor
+                    const force = (150 - distance) / 50;
+                    particle.vx -= dx / distance * force;
+                    particle.vy -= dy / distance * force;
+                }
+            });
+        });
         
         // Animation loop
         function animate() {
-            // Clear canvas with semi-transparent black for motion blur effect
-            ctx.fillStyle = 'rgba(10, 10, 18, 0.2)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw elements
-            drawStars();
-            drawParticles();
+            particles.forEach(particle => {
+                let x = parseFloat(particle.style.left);
+                let y = parseFloat(particle.style.top);
+                
+                // Update position with velocity
+                x += particle.vx;
+                y += particle.vy;
+                
+                // Bounce off edges
+                if (x < 0 || x > window.innerWidth) particle.vx *= -1;
+                if (y < 0 || y > window.innerHeight) particle.vy *= -1;
+                
+                // Apply slight randomness
+                particle.vx += (Math.random() - 0.5) * 0.1;
+                particle.vy += (Math.random() - 0.5) * 0.1;
+                
+                // Limit speed
+                const speed = Math.sqrt(particle.vx * particle.vx + particle.vy * particle.vy);
+                if (speed > 2) {
+                    particle.vx = (particle.vx / speed) * 2;
+                    particle.vy = (particle.vy / speed) * 2;
+                }
+                
+                // Apply friction
+                particle.vx *= 0.98;
+                particle.vy *= 0.98;
+                
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+            });
             
             requestAnimationFrame(animate);
         }
         
-        // Mouse movement handler
-        function handleMouseMove(e) {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-        }
-        
-        // Gyroscope handler
-        function handleOrientation(e) {
-            if (!config.gyroEnabled) return;
-            
-            gyroData.alpha = e.alpha;  // z-axis rotation (0-360)
-            gyroData.beta = e.beta;    // x-axis rotation (-180 to 180)
-            gyroData.gamma = e.gamma; // y-axis rotation (-90 to 90)
-        }
-        
-        // Toggle gyroscope
-        function toggleGyroscope() {
-            config.gyroEnabled = !config.gyroEnabled;
-            toggleGyroBtn.textContent = config.gyroEnabled ? 'Disable Gyroscope' : 'Enable Gyroscope';
-            
-            if (config.gyroEnabled) {
-                // Request permission on iOS 13+
-                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    DeviceOrientationEvent.requestPermission()
-                        .then(response => {
-                            if (response === 'granted') {
-                                window.addEventListener('deviceorientation', handleOrientation);
-                            } else {
-                                config.gyroEnabled = false;
-                                toggleGyroBtn.textContent = 'Enable Gyroscope';
-                            }
-                        })
-                        .catch(console.error);
-                } else {
-                    window.addEventListener('deviceorientation', handleOrientation);
-                }
-            } else {
-                window.removeEventListener('deviceorientation', handleOrientation);
-            }
-        }
-        
-        // Initialize and start animation
-        initParticles();
-        initStars();
         animate();
-        
-        // Event listeners
-        window.addEventListener('mousemove', handleMouseMove);
-        toggleGyroBtn.addEventListener('click', toggleGyroscope);
-        
-        // Touch support
-        window.addEventListener('touchmove', function(e) {
-            e.preventDefault();
-            mouseX = e.touches[0].clientX;
-            mouseY = e.touches[0].clientY;
-        }, { passive: false });
     </script>
 </body>
 </html>
