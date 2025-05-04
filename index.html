@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Floating Dreamscape</title>
+    <title>Endless Ascent</title>
     <style>
         * {
             margin: 0;
@@ -12,141 +12,111 @@
         }
 
         body {
-            background: #0a0a1a;
+            background: #1a1a1a;
             overflow: hidden;
             height: 100vh;
-            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px;
         }
 
-        .sky {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, #020010, #1a0030);
+        .illusion-container {
+            position: relative;
+            width: 300vmin;
+            height: 300vmin;
+            transform-style: preserve-3d;
         }
 
-        .star {
-            position: absolute;
-            background: white;
-            border-radius: 50%;
-            animation: twinkle 2s infinite;
-        }
-
-        .island {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(30px);
-            opacity: 0.8;
-        }
-
-        .glow {
+        .track {
             position: absolute;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle, #7f00ff, transparent 60%);
+            animation: rotate 40s linear infinite;
+            background-image: 
+                linear-gradient(45deg, #333 25%, transparent 25%),
+                linear-gradient(-45deg, #333 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #333 75%),
+                linear-gradient(-45deg, transparent 75%, #333 75%);
+            background-size: 20vmin 20vmin;
+            background-position: 0 0, 0 10vmin, 10vmin -10vmin, -10vmin 0;
+        }
+
+        .stairs {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                -45deg,
+                #ff4444,
+                #ff4444 10vmin,
+                #44ff44 10vmin,
+                #44ff44 20vmin,
+                #4444ff 20vmin,
+                #4444ff 30vmin
+            );
             mix-blend-mode: screen;
-            opacity: 0.3;
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
         }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(2deg); }
+        @keyframes rotate {
+            0% { transform: rotateX(60deg) rotateZ(0deg); }
+            100% { transform: rotateX(60deg) rotateZ(360deg); }
         }
 
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
+        .central-void {
+            position: absolute;
+            width: 30vmin;
+            height: 30vmin;
+            background: #1a1a1a;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            box-shadow: 0 0 50vmin 20vmin #1a1a1a;
         }
     </style>
 </head>
 <body>
-    <div class="sky" id="sky"></div>
-    <div class="glow"></div>
+    <div class="illusion-container">
+        <div class="track"></div>
+        <div class="stairs"></div>
+        <div class="central-void"></div>
+    </div>
 
     <script>
-        // Create starfield
-        const sky = document.getElementById('sky');
-        for(let i = 0; i < 150; i++) {
-            const star = document.createElement('div');
-            star.className = 'star';
-            star.style.width = Math.random() * 3 + 'px';
-            star.style.height = star.style.width;
-            star.style.left = Math.random() * 100 + '%';
-            star.style.top = Math.random() * 100 + '%';
-            star.style.animationDelay = Math.random() * 2 + 's';
-            sky.appendChild(star);
-        }
+        // Mobile touch interaction
+        let touchStartY = 0;
+        let rotation = 0;
+        const container = document.querySelector('.illusion-container');
+        
+        document.addEventListener('touchstart', (e) => {
+            touchStartY = e.touches[0].clientY;
+        });
 
-        // Generate floating islands
-        const colors = ['#ff99cc', '#99ffcc', '#cc99ff', '#ffcc99'];
-        for(let i = 0; i < 8; i++) {
-            const island = document.createElement('div');
-            island.className = 'island';
-            island.style.background = colors[i % colors.length];
-            island.style.width = Math.random() * 200 + 100 + 'px';
-            island.style.height = Math.random() * 100 + 50 + 'px';
-            island.style.left = Math.random() * 100 + '%';
-            island.style.top = Math.random() * 100 + '%';
-            island.style.animation = `float ${8 + Math.random() * 8}s infinite`;
-            sky.appendChild(island);
-        }
+        document.addEventListener('touchmove', (e) => {
+            const deltaY = e.touches[0].clientY - touchStartY;
+            rotation += deltaY * 0.1;
+            container.style.transform = `rotateX(60deg) rotateZ(${rotation}deg)`;
+            touchStartY = e.touches[0].clientY;
+            e.preventDefault();
+        });
 
-        // Add atmospheric particles
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        document.body.appendChild(canvas);
-
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        resize();
-        window.addEventListener('resize', resize);
-
-        class Sparkle {
-            constructor() {
-                this.reset();
-            }
-
-            reset() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.size = Math.random() * 2;
-                this.speed = Math.random() * 0.5 + 0.2;
-                this.alpha = Math.random() * 0.5 + 0.3;
-            }
-
-            draw() {
-                ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-            }
-
-            update() {
-                this.y -= this.speed;
-                if(this.y < -10) this.reset();
-                this.draw();
-            }
-        }
-
-        // Create sparkles
-        const sparkles = Array(100).fill().map(() => new Sparkle());
-
-        // Animation loop
-        function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            sparkles.forEach(sparkle => sparkle.update());
-            requestAnimationFrame(animate);
-        }
-
-        animate();
-
-        // Add ambient color shift
+        // Adaptive color shifting
+        const stairs = document.querySelector('.stairs');
         let hue = 0;
+        
         setInterval(() => {
-            hue = (hue + 0.3) % 360;
-            document.body.style.backgroundColor = `hsl(${hue}, 30%, 5%)`;
+            hue = (hue + 0.5) % 360;
+            stairs.style.background = repeatingLinearGradient(
+                -45deg,
+                `hsl(${hue}, 100%, 50%)`,
+                `hsl(${hue}, 100%, 50%) 10vmin,
+                `hsl(${hue + 120}, 100%, 50%) 10vmin,
+                `hsl(${hue + 120}, 100%, 50%) 20vmin,
+                `hsl(${hue + 240}, 100%, 50%) 20vmin,
+                `hsl(${hue + 240}, 100%, 50%) 30vmin
+            );
         }, 50);
     </script>
 </body>
