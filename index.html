@@ -3,114 +3,204 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Clock</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>Notion Digital Clock</title>
     <style>
-        /* Apply Inter font globally */
+        :root {
+            --primary-color: #37352f;
+            --secondary-color: #787774;
+            --accent-color: #2eaadc;
+            --bg-color: rgba(255, 255, 255, 0.7);
+            --text-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            /* Ensure body takes full height for centering */
-            min-height: 100vh;
-            /* Remove default margin */
             margin: 0;
-            /* Use flexbox to center the clock */
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: transparent;
             display: flex;
             justify-content: center;
             align-items: center;
-            /* Subtle background for contrast, Notion often has white/off-white */
-            background-color: #f7fafc; /* Tailwind gray-100 */
+            min-height: 100vh;
+            overflow: hidden;
         }
-        /* Style for the clock container */
+
         .clock-container {
-            background-color: white;
-            padding: 1.5rem 2rem; /* p-6 px-8 */
-            border-radius: 0.75rem; /* rounded-xl */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+            background: var(--bg-color);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             text-align: center;
-            min-width: 250px; /* Ensure minimum width */
+            transition: all 0.3s ease;
+            max-width: 300px;
+            width: 100%;
         }
-        /* Style for the time display */
+
+        .clock-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
         .time {
-            font-size: 3rem; /* text-5xl */
-            font-weight: 700; /* font-bold */
-            color: #1a202c; /* Tailwind gray-900 */
-            letter-spacing: 0.05em; /* Add slight spacing */
-            line-height: 1; /* Ensure tight line height */
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            letter-spacing: -2px;
+            margin: 0;
+            text-shadow: var(--text-shadow);
+            position: relative;
+            display: inline-block;
         }
-        /* Style for AM/PM indicator */
-        .am-pm {
-            font-size: 1rem; /* text-base */
-            font-weight: 500; /* font-medium */
-            color: #4a5568; /* Tailwind gray-600 */
-            margin-left: 0.5rem; /* ml-2 */
+
+        .time-segment {
+            display: inline-block;
+            transition: transform 0.3s ease;
         }
-        /* Style for the date display */
+
+        .time-segment.changing {
+            transform: translateY(-10px);
+            opacity: 0;
+        }
+
+        .colon {
+            animation: blink 1.5s infinite;
+            position: relative;
+            top: -5px;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
         .date {
-            font-size: 0.875rem; /* text-sm */
-            font-weight: 400; /* font-normal */
-            color: #718096; /* Tailwind gray-500 */
-            margin-top: 0.5rem; /* mt-2 */
+            font-size: 1rem;
+            color: var(--secondary-color);
+            margin-top: 8px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .day {
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .month {
+            display: inline-block;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: var(--secondary-color);
+            cursor: pointer;
+            font-size: 1.2rem;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+
+        .theme-toggle:hover {
+            opacity: 1;
+        }
+
+        /* Dark theme */
+        .dark {
+            --primary-color: #ffffff;
+            --secondary-color: #a6a6a6;
+            --accent-color: #2eaadc;
+            --bg-color: rgba(40, 40, 40, 0.7);
+            --text-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
         }
     </style>
 </head>
 <body>
-    <div class="clock-container">
-        <div class="time">
-            <span id="hours">00</span>:<span id="minutes">00</span>:<span id="seconds">00</span>
-            <span class="am-pm" id="am-pm">AM</span>
+    <div class="clock-container" id="clock-container">
+        <button class="theme-toggle" id="theme-toggle">☀️</button>
+        <div class="time" id="time">
+            <span class="time-segment" id="hours">00</span>
+            <span class="colon">:</span>
+            <span class="time-segment" id="minutes">00</span>
+            <span class="colon">:</span>
+            <span class="time-segment" id="seconds">00</span>
         </div>
         <div class="date" id="date">
-            Monday, May 5, 2025
+            <span class="day" id="day">Monday</span>
+            <span class="month" id="month-day">Jan 1</span>
         </div>
     </div>
 
     <script>
-        // Function to update the clock time and date
-        function updateClock() {
-            const now = new Date();
-
-            // --- Time Calculation ---
-            let hours = now.getHours();
-            const minutes = now.getMinutes();
-            const seconds = now.getSeconds();
-            const amPm = hours >= 12 ? 'PM' : 'AM';
-
-            // Convert to 12-hour format
-            hours = hours % 12;
-            hours = hours ? hours : 12; // The hour '0' should be '12'
-
-            // --- Formatting ---
-            // Add leading zeros if needed
-            const formattedHours = hours < 10 ? '0' + hours : hours;
-            const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
-            const formattedSeconds = seconds < 10 ? '0' + seconds : seconds;
-
-            // --- Date Calculation & Formatting ---
-            const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
-            const dayOfWeek = dayNames[now.getDay()];
-            const dayOfMonth = now.getDate();
-            const month = monthNames[now.getMonth()];
-            const year = now.getFullYear();
-            const formattedDate = `${dayOfWeek}, ${month} ${dayOfMonth}, ${year}`;
-
-            // --- Update HTML Elements ---
-            document.getElementById('hours').textContent = formattedHours;
-            document.getElementById('minutes').textContent = formattedMinutes;
-            document.getElementById('seconds').textContent = formattedSeconds;
-            document.getElementById('am-pm').textContent = amPm;
-            document.getElementById('date').textContent = formattedDate;
-        }
-
-        // --- Initial Call & Interval ---
-        // Call updateClock once immediately to avoid delay
-        updateClock();
-        // Set interval to update the clock every second (1000 milliseconds)
-        setInterval(updateClock, 1000);
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const clockContainer = document.getElementById('clock-container');
+            
+            // Theme toggle
+            themeToggle.addEventListener('click', function() {
+                clockContainer.classList.toggle('dark');
+                const isDark = clockContainer.classList.contains('dark');
+                themeToggle.textContent = isDark ? '🌙' : '☀️';
+                
+                // Save preference to localStorage
+                localStorage.setItem('clockTheme', isDark ? 'dark' : 'light');
+            });
+            
+            // Check for saved theme preference
+            if (localStorage.getItem('clockTheme') === 'dark') {
+                clockContainer.classList.add('dark');
+                themeToggle.textContent = '🌙';
+            }
+            
+            // Clock functionality
+            function updateClock() {
+                const now = new Date();
+                
+                // Time
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                const seconds = now.getSeconds().toString().padStart(2, '0');
+                
+                updateSegment('hours', hours);
+                updateSegment('minutes', minutes);
+                updateSegment('seconds', seconds);
+                
+                // Date
+                const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                
+                document.getElementById('day').textContent = days[now.getDay()];
+                document.getElementById('month-day').textContent = `${months[now.getMonth()]} ${now.getDate()}`;
+            }
+            
+            function updateSegment(id, newValue) {
+                const element = document.getElementById(id);
+                const currentValue = element.textContent;
+                
+                if (currentValue !== newValue) {
+                    // Add animation class
+                    element.classList.add('changing');
+                    
+                    // Update value after animation starts
+                    setTimeout(() => {
+                        element.textContent = newValue;
+                        element.classList.remove('changing');
+                    }, 150);
+                }
+            }
+            
+            // Initial update
+            updateClock();
+            
+            // Update every second
+            setInterval(updateClock, 1000);
+        });
     </script>
 </body>
 </html>
