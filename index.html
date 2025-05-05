@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auto-Themed Notion Clock</title>
+    <title>Notion Digital Clock with Week Progress</title>
     <style>
         :root {
             --primary-color: #37352f;
@@ -11,6 +11,7 @@
             --accent-color: #2eaadc;
             --bg-color: rgba(255, 255, 255, 0.7);
             --text-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+            --progress-bg: rgba(0, 0, 0, 0.1);
         }
 
         .dark {
@@ -19,6 +20,7 @@
             --accent-color: #2eaadc;
             --bg-color: rgba(40, 40, 40, 0.7);
             --text-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
+            --progress-bg: rgba(255, 255, 255, 0.1);
         }
 
         body {
@@ -96,6 +98,48 @@
         .month {
             display: inline-block;
         }
+
+        .week-progress {
+            margin-top: 16px;
+            width: 100%;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: var(--progress-bg);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--accent-color);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        .day-labels {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            font-size: 0.7rem;
+            color: var(--secondary-color);
+        }
+
+        .day-label {
+            flex: 1;
+            text-align: center;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+        }
+
+        .day-label.active {
+            opacity: 1;
+            font-weight: 600;
+            color: var(--accent-color);
+        }
     </style>
 </head>
 <body>
@@ -111,11 +155,28 @@
             <span class="day" id="day">Monday</span>
             <span class="month" id="month-day">Jan 1</span>
         </div>
+        
+        <div class="week-progress">
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <div class="day-labels" id="day-labels">
+                <span class="day-label" data-day="1">Mon</span>
+                <span class="day-label" data-day="2">Tue</span>
+                <span class="day-label" data-day="3">Wed</span>
+                <span class="day-label" data-day="4">Thu</span>
+                <span class="day-label" data-day="5">Fri</span>
+                <span class="day-label" data-day="6">Sat</span>
+                <span class="day-label" data-day="0">Sun</span>
+            </div>
+        </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const clockContainer = document.getElementById('clock-container');
+            const progressBar = document.getElementById('progress-bar');
+            const dayLabels = document.querySelectorAll('.day-label');
             
             function updateTheme() {
                 const now = new Date();
@@ -123,6 +184,34 @@
                 // Switch to dark theme between 7 PM (19) and 6 AM (6)
                 const isNightTime = hours >= 19 || hours < 6;
                 clockContainer.classList.toggle('dark', isNightTime);
+            }
+            
+            function updateWeekProgress() {
+                const now = new Date();
+                const dayOfWeek = now.getDay(); // 0 (Sun) to 6 (Sat)
+                const hours = now.getHours();
+                const minutes = now.getMinutes();
+                
+                // Calculate progress through the week (Monday to Sunday)
+                let weekProgress;
+                if (dayOfWeek === 0) { // Sunday
+                    weekProgress = 6 + (hours / 24);
+                } else {
+                    weekProgress = (dayOfWeek - 1) + (hours / 24);
+                }
+                
+                // Convert to percentage (0-7 days)
+                const progressPercent = (weekProgress / 6) * 100;
+                progressBar.style.width = `${Math.min(100, progressPercent)}%`;
+                
+                // Update active day
+                dayLabels.forEach(label => {
+                    const labelDay = parseInt(label.getAttribute('data-day'));
+                    label.classList.toggle('active', 
+                        (dayOfWeek === 0 && labelDay === 0) || // Sunday special case
+                        (labelDay === dayOfWeek)
+                    );
+                });
             }
             
             function updateClock() {
@@ -146,6 +235,9 @@
                 
                 document.getElementById('day').textContent = days[now.getDay()];
                 document.getElementById('month-day').textContent = `${months[now.getMonth()]} ${now.getDate()}`;
+                
+                // Update week progress
+                updateWeekProgress();
             }
             
             function updateSegment(id, newValue) {
@@ -164,7 +256,7 @@
                 }
             }
             
-            // Set initial theme and time
+            // Set initial theme, time, and week progress
             updateTheme();
             updateClock();
             
