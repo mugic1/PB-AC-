@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notion Digital Clock</title>
+    <title>Auto-Themed Notion Clock</title>
     <style>
         :root {
             --primary-color: #37352f;
@@ -11,6 +11,14 @@
             --accent-color: #2eaadc;
             --bg-color: rgba(255, 255, 255, 0.7);
             --text-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .dark {
+            --primary-color: #ffffff;
+            --secondary-color: #a6a6a6;
+            --accent-color: #2eaadc;
+            --bg-color: rgba(40, 40, 40, 0.7);
+            --text-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
         }
 
         body {
@@ -34,14 +42,9 @@
             -webkit-backdrop-filter: blur(8px);
             border: 1px solid rgba(255, 255, 255, 0.3);
             text-align: center;
-            transition: all 0.3s ease;
+            transition: all 0.5s ease;
             max-width: 300px;
             width: 100%;
-        }
-
-        .clock-container:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
         }
 
         .time {
@@ -93,37 +96,10 @@
         .month {
             display: inline-block;
         }
-
-        .theme-toggle {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            color: var(--secondary-color);
-            cursor: pointer;
-            font-size: 1.2rem;
-            opacity: 0.5;
-            transition: opacity 0.3s;
-        }
-
-        .theme-toggle:hover {
-            opacity: 1;
-        }
-
-        /* Dark theme */
-        .dark {
-            --primary-color: #ffffff;
-            --secondary-color: #a6a6a6;
-            --accent-color: #2eaadc;
-            --bg-color: rgba(40, 40, 40, 0.7);
-            --text-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
-        }
     </style>
 </head>
 <body>
     <div class="clock-container" id="clock-container">
-        <button class="theme-toggle" id="theme-toggle">☀️</button>
         <div class="time" id="time">
             <span class="time-segment" id="hours">00</span>
             <span class="colon">:</span>
@@ -139,28 +115,21 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const themeToggle = document.getElementById('theme-toggle');
             const clockContainer = document.getElementById('clock-container');
             
-            // Theme toggle
-            themeToggle.addEventListener('click', function() {
-                clockContainer.classList.toggle('dark');
-                const isDark = clockContainer.classList.contains('dark');
-                themeToggle.textContent = isDark ? '🌙' : '☀️';
-                
-                // Save preference to localStorage
-                localStorage.setItem('clockTheme', isDark ? 'dark' : 'light');
-            });
-            
-            // Check for saved theme preference
-            if (localStorage.getItem('clockTheme') === 'dark') {
-                clockContainer.classList.add('dark');
-                themeToggle.textContent = '🌙';
+            function updateTheme() {
+                const now = new Date();
+                const hours = now.getHours();
+                // Switch to dark theme between 7 PM (19) and 6 AM (6)
+                const isNightTime = hours >= 19 || hours < 6;
+                clockContainer.classList.toggle('dark', isNightTime);
             }
             
-            // Clock functionality
             function updateClock() {
                 const now = new Date();
+                
+                // Update theme first (in case we crossed the threshold)
+                updateTheme();
                 
                 // Time
                 const hours = now.getHours().toString().padStart(2, '0');
@@ -195,7 +164,8 @@
                 }
             }
             
-            // Initial update
+            // Set initial theme and time
+            updateTheme();
             updateClock();
             
             // Update every second
