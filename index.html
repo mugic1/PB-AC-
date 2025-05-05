@@ -3,139 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Illusional Light Animation</title>
+    <title>Digital Clock</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
+        /* Apply Inter font globally */
         body {
+            font-family: 'Inter', sans-serif;
+            /* Ensure body takes full height for centering */
+            min-height: 100vh;
+            /* Remove default margin */
             margin: 0;
-            overflow: hidden;
-            background: #000;
-            cursor: none;
+            /* Use flexbox to center the clock */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Subtle background for contrast, Notion often has white/off-white */
+            background-color: #f7fafc; /* Tailwind gray-100 */
         }
-        
-        .particle {
-            position: absolute;
-            border-radius: 50%;
-            pointer-events: none;
-            mix-blend-mode: screen;
-            transform: translate(-50%, -50%);
-            transition: transform 0.1s ease-out;
+        /* Style for the clock container */
+        .clock-container {
+            background-color: white;
+            padding: 1.5rem 2rem; /* p-6 px-8 */
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+            text-align: center;
+            min-width: 250px; /* Ensure minimum width */
         }
-        
-        #cursor {
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            mix-blend-mode: screen;
-            filter: blur(5px);
+        /* Style for the time display */
+        .time {
+            font-size: 3rem; /* text-5xl */
+            font-weight: 700; /* font-bold */
+            color: #1a202c; /* Tailwind gray-900 */
+            letter-spacing: 0.05em; /* Add slight spacing */
+            line-height: 1; /* Ensure tight line height */
+        }
+        /* Style for AM/PM indicator */
+        .am-pm {
+            font-size: 1rem; /* text-base */
+            font-weight: 500; /* font-medium */
+            color: #4a5568; /* Tailwind gray-600 */
+            margin-left: 0.5rem; /* ml-2 */
+        }
+        /* Style for the date display */
+        .date {
+            font-size: 0.875rem; /* text-sm */
+            font-weight: 400; /* font-normal */
+            color: #718096; /* Tailwind gray-500 */
+            margin-top: 0.5rem; /* mt-2 */
         }
     </style>
 </head>
 <body>
-    <div id="cursor"></div>
+    <div class="clock-container">
+        <div class="time">
+            <span id="hours">00</span>:<span id="minutes">00</span>:<span id="seconds">00</span>
+            <span class="am-pm" id="am-pm">AM</span>
+        </div>
+        <div class="date" id="date">
+            Monday, May 5, 2025
+        </div>
+    </div>
+
     <script>
-        const colors = [
-            'rgba(255, 100, 100, 0.8)',
-            'rgba(100, 255, 100, 0.8)',
-            'rgba(100, 100, 255, 0.8)',
-            'rgba(255, 255, 100, 0.8)',
-            'rgba(255, 100, 255, 0.8)',
-            'rgba(100, 255, 255, 0.8)'
-        ];
-        
-        const particleCount = 50;
-        const particles = [];
-        const cursor = document.getElementById('cursor');
-        
-        // Create particles
-        for (let i = 0; i < particleCount; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            
-            // Random properties
-            const size = Math.random() * 15 + 5;
-            const color = colors[Math.floor(Math.random() * colors.length)];
-            
-            particle.style.width = `${size}px`;
-            particle.style.height = `${size}px`;
-            particle.style.background = color;
-            particle.style.boxShadow = `0 0 ${size}px ${size/2}px ${color}`;
-            
-            // Initial position
-            particle.style.left = `${Math.random() * 100}vw`;
-            particle.style.top = `${Math.random() * 100}vh`;
-            
-            // Store velocity
-            particle.vx = Math.random() * 2 - 1;
-            particle.vy = Math.random() * 2 - 1;
-            
-            document.body.appendChild(particle);
-            particles.push(particle);
+        // Function to update the clock time and date
+        function updateClock() {
+            const now = new Date();
+
+            // --- Time Calculation ---
+            let hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            const amPm = hours >= 12 ? 'PM' : 'AM';
+
+            // Convert to 12-hour format
+            hours = hours % 12;
+            hours = hours ? hours : 12; // The hour '0' should be '12'
+
+            // --- Formatting ---
+            // Add leading zeros if needed
+            const formattedHours = hours < 10 ? '0' + hours : hours;
+            const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
+            const formattedSeconds = seconds < 10 ? '0' + seconds : seconds;
+
+            // --- Date Calculation & Formatting ---
+            const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+            const dayOfWeek = dayNames[now.getDay()];
+            const dayOfMonth = now.getDate();
+            const month = monthNames[now.getMonth()];
+            const year = now.getFullYear();
+            const formattedDate = `${dayOfWeek}, ${month} ${dayOfMonth}, ${year}`;
+
+            // --- Update HTML Elements ---
+            document.getElementById('hours').textContent = formattedHours;
+            document.getElementById('minutes').textContent = formattedMinutes;
+            document.getElementById('seconds').textContent = formattedSeconds;
+            document.getElementById('am-pm').textContent = amPm;
+            document.getElementById('date').textContent = formattedDate;
         }
-        
-        // Mouse movement
-        document.addEventListener('mousemove', (e) => {
-            cursor.style.left = `${e.clientX}px`;
-            cursor.style.top = `${e.clientY}px`;
-            
-            // Particles react to mouse
-            particles.forEach(particle => {
-                const particleX = parseFloat(particle.style.left);
-                const particleY = parseFloat(particle.style.top);
-                
-                const dx = e.clientX - particleX;
-                const dy = e.clientY - particleY;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                if (distance < 150) {
-                    // Repel particles from cursor
-                    const force = (150 - distance) / 50;
-                    particle.vx -= dx / distance * force;
-                    particle.vy -= dy / distance * force;
-                }
-            });
-        });
-        
-        // Animation loop
-        function animate() {
-            particles.forEach(particle => {
-                let x = parseFloat(particle.style.left);
-                let y = parseFloat(particle.style.top);
-                
-                // Update position with velocity
-                x += particle.vx;
-                y += particle.vy;
-                
-                // Bounce off edges
-                if (x < 0 || x > window.innerWidth) particle.vx *= -1;
-                if (y < 0 || y > window.innerHeight) particle.vy *= -1;
-                
-                // Apply slight randomness
-                particle.vx += (Math.random() - 0.5) * 0.1;
-                particle.vy += (Math.random() - 0.5) * 0.1;
-                
-                // Limit speed
-                const speed = Math.sqrt(particle.vx * particle.vx + particle.vy * particle.vy);
-                if (speed > 2) {
-                    particle.vx = (particle.vx / speed) * 2;
-                    particle.vy = (particle.vy / speed) * 2;
-                }
-                
-                // Apply friction
-                particle.vx *= 0.98;
-                particle.vy *= 0.98;
-                
-                particle.style.left = `${x}px`;
-                particle.style.top = `${y}px`;
-            });
-            
-            requestAnimationFrame(animate);
-        }
-        
-        animate();
+
+        // --- Initial Call & Interval ---
+        // Call updateClock once immediately to avoid delay
+        updateClock();
+        // Set interval to update the clock every second (1000 milliseconds)
+        setInterval(updateClock, 1000);
     </script>
 </body>
 </html>
