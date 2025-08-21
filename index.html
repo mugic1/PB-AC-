@@ -1,1 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain Detox</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
+        :root {
+            --primary: #8ECAE6;
+            --secondary: #FFB4A2;
+            --background: #FDFFFC;
+            --text: #2F3640;
+            --accent1: #E0BBE4;
+            --accent2: #C9E4CA;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 70px;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--accent1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .greeting {
+            margin-bottom: 16px;
+        }
+
+        .greeting h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .greeting p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .goal-card {
+            background: linear-gradient(135deg, var(--primary), var(--accent1));
+            color: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .goal-card h2 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .goal-card p {
+            font-size: 15px;
+            opacity: 0.9;
+        }
+
+        .action-button {
+            display: block;
+            width: 100%;
+            padding: 20px;
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            cursor: pointer;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .action-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .stat {
+            background-color: white;
+            border-radius: 12px;
+            padding: 16px;
+            flex: 0 0 30%;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .mood-check {
+            background-color: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .mood-options {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+        }
+
+        .mood-option {
+            text-align: center;
+            flex: 1;
+            padding: 10px;
+            border-radius: 12px;
+            transition: background-color 0.2s;
+        }
+
+        .mood-option:active {
+            background-color: #f5f5f5;
+        }
+
+        .mood-emoji {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .mood-name {
+            font-size: 14px;
+        }
+
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 16px;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-item {
+            text-align: center;
+            color: #888;
+            font-size: 14px;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .focus-modal, .mood-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            width: 85%;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 400px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .timer-options {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .timer-option {
+            padding: 12px;
+            background-color: #f0f0f0;
+            border-radius: 12px;
+            flex: 0 0 30%;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .timer-option.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .app-list {
+            margin: 16px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .app-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .app-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background-color: #f0f0f0;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .app-name {
+            flex: 1;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent2);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .modal-button {
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .secondary-button {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        .primary-button {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 16px;
+            }
+            
+            .stat {
+                padding: 12px;
+            }
+            
+            .stat-value {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">Brain Detox</div>
+            <div class="user-avatar">A</div>
+        </header>
+
+        <div class="greeting">
+            <h1>Good afternoon, Alex!</h1>
+            <p>Take a moment to refresh your mind</p>
+        </div>
+
+        <div class="goal-card">
+            <h2>Today's Detox Goal</h2>
+            <p>Complete a 5-minute breathing exercise</p>
+        </div>
+
+        <button class="action-button" id="startDetoxBtn">Start Detox</button>
+
+        <div class="stats-container">
+            <div class="stat">
+                <div class="stat-value">5</div>
+                <div class="stat-label">Day Streak</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">47m</div>
+                <div class="stat-label">Saved Today</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">3/5</div>
+                <div class="stat-label">Tasks Done</div>
+            </div>
+        </div>
+
+        <div class="mood-check">
+            <h2 class="section-title">How are you feeling?</h2>
+            <div class="mood-options">
+                <div class="mood-option" data-mood="Happy">
+                    <div class="mood-emoji">😊</div>
+                    <div class="mood-name">Happy</div>
+                </div>
+                <div class="mood-option" data-mood="Stressed">
+                    <div class="mood-emoji">😥</div>
+                    <div class="mood-name">Stressed</div>
+                </div>
+                <div class="mood-option" data-mood="Tired">
+                    <div class="mood-emoji">😴</div>
+                    <div class="mood-name">Tired</div>
+                </div>
+                <div class="mood-option" data-mood="Energetic">
+                    <div class="mood-emoji">🥳</div>
+                    <div class="mood-name">Energetic</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <div class="nav-item active">
+            <div class="nav-icon"><i class="fas fa-home"></i></div>
+            <div>Home</div>
+        </div>
+        <div class="nav-item" id="focusNav">
+            <div class="nav-icon"><i class="fas fa-target"></i></div>
+            <div>Focus</div>
+        </div>
+        <div class="nav-item">
+            <div class="nav-icon"><i class="fas fa-book"></i></div>
+            <div>Journal</div>
+        </div>
+        <div class="nav-item">
+            <div class="nav-icon"><i class="fas fa-chart-line"></i></div>
+            <div>Stats</div>
+        </div>
+        <div class="nav-item">
+            <div class="nav-icon"><i class="fas fa-cog"></i></div>
+            <div>Settings</div>
+        </div>
+    </div>
+
+    <!-- Focus Mode Modal -->
+    <div class="focus-modal" id="focusModal">
+        <div class="modal-content">
+            <h2 class="modal-title">Focus Mode</h2>
+            <p>Select duration and apps to block</p>
+            
+            <div class="timer-options">
+                <div class="timer-option" data-minutes="25">25 min</div>
+                <div class="timer-option active" data-minutes="50">50 min</div>
+                <div class="timer-option" data-minutes="90">90 min</div>
+            </div>
+            
+            <h3>Select Apps to Block</h3>
+            <div class="app-list">
+                <div class="app-item">
+                    <div class="app-icon"><i class="fab fa-instagram" style="color: #E4405F;"></i></div>
+                    <div class="app-name">Instagram</div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="app-item">
+                    <div class="app-icon"><i class="fab fa-youtube" style="color: #FF0000;"></i></div>
+                    <div class="app-name">YouTube</div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="app-item">
+                    <div class="app-icon"><i class="fab fa-twitter" style="color: #1DA1F2;"></i></div>
+                    <div class="app-name">Twitter</div>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="app-item">
+                    <div class="app-icon"><i class="fab fa-facebook" style="color: #1877F2;"></i></div>
+                    <div class="app-name">Facebook</div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="modal-button secondary-button" id="cancelFocus">Cancel</button>
+                <button class="modal-button primary-button" id="startFocus">Start Focus</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mood Response Modal -->
+    <div class="mood-modal" id="moodModal">
+        <div class="modal-content">
+            <h2 class="modal-title" id="moodModalTitle">We see you're feeling <span id="moodValue">Happy</span></h2>
+            <p id="moodSuggestion">Based on your mood, we recommend this activity:</p>
+            
+            <div class="goal-card" style="margin: 20px 0;">
+                <h2 id="suggestionActivity">5-minute Gratitude Journaling</h2>
+                <p id="suggestionDesc">Write down three things you're grateful for today</p>
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="modal-button secondary-button" id="cancelMood">Maybe Later</button>
+                <button class="modal-button primary-button" id="startActivity">Start Activity</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const focusModal = document.getElementById('focusModal');
+        const moodModal = document.getElementById('moodModal');
+        const focusNav = document.getElementById('focusNav');
+        const cancelFocus = document.getElementById('cancelFocus');
+        const startFocus = document.getElementById('startFocus');
+        const cancelMood = document.getElementById('cancelMood');
+        const startActivity = document.getElementById('startActivity');
+        const startDetoxBtn = document.getElementById('startDetoxBtn');
+        const moodOptions = document.querySelectorAll('.mood-option');
+        const timerOptions = document.querySelectorAll('.timer-option');
+        const moodValue = document.getElementById('moodValue');
+        
+        // Mood suggestions mapping
+        const moodSuggestions = {
+            'Happy': {
+                activity: 'Gratitude Journaling',
+                description: 'Write down three things you\'re grateful for today'
+            },
+            'Stressed': {
+                activity: 'Guided Breathing',
+                description: '5-minute box breathing exercise to calm your mind'
+            },
+            'Tired': {
+                activity: 'Energizing Visualization',
+                description: 'Quick visualization exercise to refresh and re-energize'
+            },
+            'Energetic': {
+                activity: 'Focus Session',
+                description: 'Channel your energy into a productive focus session'
+            }
+        };
+
+        // Event Listeners
+        focusNav.addEventListener('click', () => {
+            focusModal.style.display = 'flex';
+        });
+
+        cancelFocus.addEventListener('click', () => {
+            focusModal.style.display = 'none';
+        });
+
+        startFocus.addEventListener('click', () => {
+            alert('Focus mode started! Apps will be blocked for the selected duration.');
+            focusModal.style.display = 'none';
+        });
+
+        cancelMood.addEventListener('click', () => {
+            moodModal.style.display = 'none';
+        });
+
+        startActivity.addEventListener('click', () => {
+            alert('Starting recommended activity...');
+            moodModal.style.display = 'none';
+        });
+
+        startDetoxBtn.addEventListener('click', () => {
+            alert('Starting a 5-minute breathing exercise...');
+        });
+
+        // Mood selection
+        moodOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const mood = option.getAttribute('data-mood');
+                showMoodSuggestion(mood);
+            });
+        });
+
+        // Timer selection
+        timerOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                timerOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+            });
+        });
+
+        // Show mood suggestion
+        function showMoodSuggestion(mood) {
+            moodValue.textContent = mood;
+            document.getElementById('suggestionActivity').textContent = moodSuggestions[mood].activity;
+            document.getElementById('suggestionDesc').textContent = moodSuggestions[mood].description;
+            moodModal.style.display = 'flex';
+        }
+
+        // Update greeting based on time of day
+        function updateGreeting() {
+            const hour = new Date().getHours();
+            const greetingEl = document.querySelector('.greeting h1');
+            
+            if (hour < 12) {
+                greetingEl.textContent = 'Good morning, Alex!';
+            } else if (hour < 18) {
+                greetingEl.textContent = 'Good afternoon, Alex!';
+            } else {
+                greetingEl.textContent = 'Good evening, Alex!';
+            }
+        }
+
+        // Initialize
+        updateGreeting();
+    </script>
+</body>
+</html>
