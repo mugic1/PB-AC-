@@ -3,628 +3,322 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brain Detox</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Science Bottle Roll Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
         :root {
-            --primary: #8ECAE6;
-            --secondary: #FFB4A2;
-            --background: #FDFFFC;
-            --text: #2F3640;
-            --accent1: #E0BBE4;
-            --accent2: #C9E4CA;
-            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --board-max-width: 400px; /* Maximum size of the main game board */
+            --modal-board-max-width: 280px; /* Maximum size of the modal game board */
         }
 
         body {
-            background-color: var(--background);
-            color: var(--text);
-            min-height: 100vh;
-            padding-bottom: 70px;
+            font-family: 'Poppins', sans-serif;
+            touch-action: manipulation;
+            background: linear-gradient(270deg, #111827, #1e293b, #334155, #1e293b);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            overflow-x: hidden; /* Horizontal scroll ko rokne ke liye */
         }
 
-        .container {
-            max-width: 480px;
-            margin: 0 auto;
-            padding: 20px;
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
+        .bottle {
+            transition: transform 4s cubic-bezier(0.25, 1, 0.5, 1);
+            cursor: pointer;
+            transform: rotate(-45deg); /* Shuruaati position */
+            text-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            /* Fluid font size for emoji */
+            font-size: clamp(4rem, 18vw, 6rem);
         }
 
-        .logo {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--primary);
+        .game-board {
+            width: 85vw; /* Viewport width ka 85% */
+            height: 85vw; /* Aspect ratio maintain karne ke liye */
+            max-width: var(--board-max-width); /* Lekin isse zyada bada nahi hoga */
+            max-height: var(--board-max-width);
+            box-shadow: 0 0 20px rgba(0,0,0,0.5), inset 0 0 15px rgba(0,0,0,0.3);
         }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--accent1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-        }
-
-        .greeting {
-            margin-bottom: 16px;
-        }
-
-        .greeting h1 {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .greeting p {
-            color: #666;
-            font-size: 16px;
-        }
-
-        .goal-card {
-            background: linear-gradient(135deg, var(--primary), var(--accent1));
-            color: white;
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 24px;
-            box-shadow: var(--card-shadow);
-        }
-
-        .goal-card h2 {
-            font-size: 18px;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-
-        .goal-card p {
-            font-size: 15px;
-            opacity: 0.9;
-        }
-
-        .action-button {
-            display: block;
+        
+        .option {
+            position: absolute;
             width: 100%;
-            padding: 20px;
-            background-color: var(--secondary);
-            color: white;
-            border: none;
-            border-radius: 16px;
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 24px;
-            cursor: pointer;
-            box-shadow: var(--card-shadow);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .action-button:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .stats-container {
+            height: 100%;
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 24px;
-        }
-
-        .stat {
-            background-color: white;
-            border-radius: 12px;
-            padding: 16px;
-            flex: 0 0 30%;
-            text-align: center;
-            box-shadow: var(--card-shadow);
-        }
-
-        .stat-value {
-            font-size: 24px;
+            justify-content: center;
+            align-items: flex-start;
             font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 4px;
-        }
-
-        .stat-label {
-            font-size: 14px;
-            color: #666;
-        }
-
-        .section-title {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 16px;
-        }
-
-        .mood-check {
-            background-color: white;
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 24px;
-            box-shadow: var(--card-shadow);
-        }
-
-        .mood-options {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 12px;
-        }
-
-        .mood-option {
-            text-align: center;
-            flex: 1;
-            padding: 10px;
-            border-radius: 12px;
-            transition: background-color 0.2s;
-        }
-
-        .mood-option:active {
-            background-color: #f5f5f5;
-        }
-
-        .mood-emoji {
-            font-size: 32px;
-            margin-bottom: 8px;
-        }
-
-        .mood-name {
-            font-size: 14px;
-        }
-
-        .nav-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background-color: white;
-            display: flex;
-            justify-content: space-around;
-            padding: 16px;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .nav-item {
-            text-align: center;
-            color: #888;
-            font-size: 14px;
-        }
-
-        .nav-item.active {
-            color: var(--primary);
-        }
-
-        .nav-icon {
-            font-size: 20px;
-            margin-bottom: 4px;
-        }
-
-        .focus-modal, .mood-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 100;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background-color: white;
-            width: 85%;
-            border-radius: 16px;
-            padding: 24px;
-            max-width: 400px;
-        }
-
-        .modal-title {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 16px;
-        }
-
-        .timer-options {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .timer-option {
-            padding: 12px;
-            background-color: #f0f0f0;
-            border-radius: 12px;
-            flex: 0 0 30%;
-            text-align: center;
-            cursor: pointer;
-        }
-
-        .timer-option.active {
-            background-color: var(--primary);
             color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
         }
 
-        .app-list {
-            margin: 16px 0;
-            max-height: 200px;
-            overflow-y: auto;
+        .option-label {
+             /* Fluid font size for options */
+            font-size: clamp(0.8rem, 3.5vw, 1.25rem);
+            margin-top: clamp(10px, 4%, 20px); /* Responsive margin */
+        }
+        
+        .option-biology { transform: rotate(60deg); }
+        .option-chemistry { transform: rotate(180deg); }
+        .option-physics { transform: rotate(300deg); }
+        .label-rotator { transform: rotate(-90deg); }
+
+        .modal {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        
+        .modal-content {
+             transition: transform 0.3s ease;
         }
 
-        .app-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .app-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            background-color: #f0f0f0;
-            margin-right: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .app-name {
-            flex: 1;
-        }
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 50px;
-            height: 24px;
-        }
-
-        .switch input {
+        .modal.hidden {
             opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+
+        .modal:not(.hidden) .modal-content {
+            transform: scale(1);
+        }
+
+        .fact-container {
+            min-height: 70px;
+            transition: all 0.3s ease;
+        }
+        
+        .pointer {
             width: 0;
             height: 0;
-        }
-
-        .slider {
+            border-left: clamp(10px, 4vw, 15px) solid transparent;
+            border-right: clamp(10px, 4vw, 15px) solid transparent;
+            border-bottom: clamp(20px, 8vw, 30px) solid #f59e0b;
             position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 24px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 16px;
-            width: 16px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background-color: var(--accent2);
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(26px);
-        }
-
-        .modal-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
-
-        .modal-button {
-            padding: 12px 24px;
-            border-radius: 12px;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .secondary-button {
-            background-color: #f0f0f0;
-            color: #333;
-        }
-
-        .primary-button {
-            background-color: var(--primary);
-            color: white;
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                padding: 16px;
-            }
-            
-            .stat {
-                padding: 12px;
-            }
-            
-            .stat-value {
-                font-size: 20px;
-            }
+            top: clamp(-20px, -8%, -28px); /* Adjust position based on size */
+            left: 50%;
+            transform: translateX(-50%);
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <header>
-            <div class="logo">Brain Detox</div>
-            <div class="user-avatar">A</div>
-        </header>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
 
-        <div class="greeting">
-            <h1>Good afternoon, Alex!</h1>
-            <p>Take a moment to refresh your mind</p>
-        </div>
+    <!-- Main Game -->
+    <main id="mainGame" class="flex flex-col items-center justify-center text-center space-y-6 w-full max-w-lg">
+        <h1 class="text-4xl md:text-5xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-sky-400 to-red-400 animate-pulse">Science Spin-Off</h1>
+        <p id="mainResult" class="text-xl h-8 font-semibold text-slate-300 transition-all duration-300">Let's Play!</p>
 
-        <div class="goal-card">
-            <h2>Today's Detox Goal</h2>
-            <p>Complete a 5-minute breathing exercise</p>
-        </div>
-
-        <button class="action-button" id="startDetoxBtn">Start Detox</button>
-
-        <div class="stats-container">
-            <div class="stat">
-                <div class="stat-value">5</div>
-                <div class="stat-label">Day Streak</div>
-            </div>
-            <div class="stat">
-                <div class="stat-value">47m</div>
-                <div class="stat-label">Saved Today</div>
-            </div>
-            <div class="stat">
-                <div class="stat-value">3/5</div>
-                <div class="stat-label">Tasks Done</div>
+        <div class="relative flex items-center justify-center">
+            <div class="pointer"></div>
+            <div class="game-board rounded-full relative bg-conic-gradient from-emerald-500 via-sky-500 to-red-500">
+                <!-- Options -->
+                <div class="option option-biology"><div class="option-label label-rotator">Biology</div></div>
+                <div class="option option-chemistry"><div class="option-label label-rotator">Chemistry</div></div>
+                <div class="option option-physics"><div class="option-label label-rotator">Physics</div></div>
+                
+                <!-- Bottle Emoji -->
+                <div class="absolute w-full h-full flex items-center justify-center">
+                    <div id="mainBottle" class="bottle" onclick="spinMainBottle()">🍾</div>
+                </div>
             </div>
         </div>
+        
+        <button id="mainSpinBtn" onclick="spinMainBottle()" class="px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-700 text-white font-bold rounded-full shadow-lg hover:shadow-xl hover:scale-105 transform transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-400 disabled:opacity-50 disabled:cursor-not-allowed">
+            SPIN
+        </button>
 
-        <div class="mood-check">
-            <h2 class="section-title">How are you feeling?</h2>
-            <div class="mood-options">
-                <div class="mood-option" data-mood="Happy">
-                    <div class="mood-emoji">😊</div>
-                    <div class="mood-name">Happy</div>
+        <div id="mainFactContainer" class="fact-container w-full p-4 bg-slate-800/50 rounded-lg shadow-inner hidden"></div>
+    </main>
+
+    <!-- Modals (Biology and Chemistry) -->
+    <div id="subGameModal" class="modal hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div class="modal-content scale-95 bg-slate-800 rounded-2xl p-6 shadow-xl text-center space-y-4 relative w-full max-w-sm">
+             <h2 id="modalTitle" class="text-3xl font-bold"></h2>
+             <p id="modalResult" class="text-lg h-7 text-slate-300"></p>
+             <div class="relative flex items-center justify-center">
+                <div class="pointer"></div>
+                <div id="modalBoard" class="rounded-full relative shadow-2xl" style="width: 70vw; height: 70vw; max-width: var(--modal-board-max-width); max-height: var(--modal-board-max-width);">
+                     <div class="option" style="transform: rotate(90deg);"><div id="modalOption1" class="option-label label-rotator text-base"></div></div>
+                     <div class="option" style="transform: rotate(270deg);"><div id="modalOption2" class="option-label label-rotator text-base"></div></div>
+                     <div class="absolute w-full h-full flex items-center justify-center">
+                        <div id="modalBottle" class="bottle" style="font-size: clamp(3.5rem, 15vw, 5rem);" onclick="spinSubBottle()">🍾</div>
+                    </div>
                 </div>
-                <div class="mood-option" data-mood="Stressed">
-                    <div class="mood-emoji">😥</div>
-                    <div class="mood-name">Stressed</div>
-                </div>
-                <div class="mood-option" data-mood="Tired">
-                    <div class="mood-emoji">😴</div>
-                    <div class="mood-name">Tired</div>
-                </div>
-                <div class="mood-option" data-mood="Energetic">
-                    <div class="mood-emoji">🥳</div>
-                    <div class="mood-name">Energetic</div>
-                </div>
-            </div>
+             </div>
+             <div id="modalFactContainer" class="fact-container p-3 bg-slate-700/50 rounded-md shadow-inner text-slate-200"></div>
+             <div class="flex gap-4 mt-2">
+                <button id="modalSpinBtn" onclick="spinSubBottle()" class="w-full px-6 py-2 font-bold rounded-full shadow-lg hover:scale-105 transform transition duration-300 disabled:opacity-50"></button>
+                <button onclick="closeModal()" class="w-full px-6 py-2 bg-slate-600 font-bold rounded-full shadow-lg hover:bg-slate-700 transform transition duration-300">Close</button>
+             </div>
         </div>
     </div>
 
-    <div class="nav-bar">
-        <div class="nav-item active">
-            <div class="nav-icon"><i class="fas fa-home"></i></div>
-            <div>Home</div>
-        </div>
-        <div class="nav-item" id="focusNav">
-            <div class="nav-icon"><i class="fas fa-target"></i></div>
-            <div>Focus</div>
-        </div>
-        <div class="nav-item">
-            <div class="nav-icon"><i class="fas fa-book"></i></div>
-            <div>Journal</div>
-        </div>
-        <div class="nav-item">
-            <div class="nav-icon"><i class="fas fa-chart-line"></i></div>
-            <div>Stats</div>
-        </div>
-        <div class="nav-item">
-            <div class="nav-icon"><i class="fas fa-cog"></i></div>
-            <div>Settings</div>
-        </div>
-    </div>
-
-    <!-- Focus Mode Modal -->
-    <div class="focus-modal" id="focusModal">
-        <div class="modal-content">
-            <h2 class="modal-title">Focus Mode</h2>
-            <p>Select duration and apps to block</p>
-            
-            <div class="timer-options">
-                <div class="timer-option" data-minutes="25">25 min</div>
-                <div class="timer-option active" data-minutes="50">50 min</div>
-                <div class="timer-option" data-minutes="90">90 min</div>
-            </div>
-            
-            <h3>Select Apps to Block</h3>
-            <div class="app-list">
-                <div class="app-item">
-                    <div class="app-icon"><i class="fab fa-instagram" style="color: #E4405F;"></i></div>
-                    <div class="app-name">Instagram</div>
-                    <label class="switch">
-                        <input type="checkbox" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="app-item">
-                    <div class="app-icon"><i class="fab fa-youtube" style="color: #FF0000;"></i></div>
-                    <div class="app-name">YouTube</div>
-                    <label class="switch">
-                        <input type="checkbox" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="app-item">
-                    <div class="app-icon"><i class="fab fa-twitter" style="color: #1DA1F2;"></i></div>
-                    <div class="app-name">Twitter</div>
-                    <label class="switch">
-                        <input type="checkbox">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="app-item">
-                    <div class="app-icon"><i class="fab fa-facebook" style="color: #1877F2;"></i></div>
-                    <div class="app-name">Facebook</div>
-                    <label class="switch">
-                        <input type="checkbox" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-            </div>
-            
-            <div class="modal-buttons">
-                <button class="modal-button secondary-button" id="cancelFocus">Cancel</button>
-                <button class="modal-button primary-button" id="startFocus">Start Focus</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Mood Response Modal -->
-    <div class="mood-modal" id="moodModal">
-        <div class="modal-content">
-            <h2 class="modal-title" id="moodModalTitle">We see you're feeling <span id="moodValue">Happy</span></h2>
-            <p id="moodSuggestion">Based on your mood, we recommend this activity:</p>
-            
-            <div class="goal-card" style="margin: 20px 0;">
-                <h2 id="suggestionActivity">5-minute Gratitude Journaling</h2>
-                <p id="suggestionDesc">Write down three things you're grateful for today</p>
-            </div>
-            
-            <div class="modal-buttons">
-                <button class="modal-button secondary-button" id="cancelMood">Maybe Later</button>
-                <button class="modal-button primary-button" id="startActivity">Start Activity</button>
-            </div>
-        </div>
-    </div>
 
     <script>
-        // DOM Elements
-        const focusModal = document.getElementById('focusModal');
-        const moodModal = document.getElementById('moodModal');
-        const focusNav = document.getElementById('focusNav');
-        const cancelFocus = document.getElementById('cancelFocus');
-        const startFocus = document.getElementById('startFocus');
-        const cancelMood = document.getElementById('cancelMood');
-        const startActivity = document.getElementById('startActivity');
-        const startDetoxBtn = document.getElementById('startDetoxBtn');
-        const moodOptions = document.querySelectorAll('.mood-option');
-        const timerOptions = document.querySelectorAll('.timer-option');
-        const moodValue = document.getElementById('moodValue');
-        
-        // Mood suggestions mapping
-        const moodSuggestions = {
-            'Happy': {
-                activity: 'Gratitude Journaling',
-                description: 'Write down three things you\'re grateful for today'
-            },
-            'Stressed': {
-                activity: 'Guided Breathing',
-                description: '5-minute box breathing exercise to calm your mind'
-            },
-            'Tired': {
-                activity: 'Energizing Visualization',
-                description: 'Quick visualization exercise to refresh and re-energize'
-            },
-            'Energetic': {
-                activity: 'Focus Session',
-                description: 'Channel your energy into a productive focus session'
-            }
+        // Facts (Simple Logic)
+        const scienceFacts = {
+            Physics: [
+                "Neutron stars itni ghani hoti hain ki unka ek chammach 6 billion ton wazani hoga.",
+                "Agar aap light ki speed se travel kar pate, toh aapke liye samay ruk jaata.",
+                "Universe ka koi center nahi hai aur yeh lagatar expand ho raha hai.",
+                "Awaaz space mein travel nahi kar sakti kyunki wahan koi medium nahi hai."
+            ],
+            Botany: [
+                "Duniya ka sabse purana ped, Methuselah, 4,800 saal se bhi zyada purana hai.",
+                "Bamboo ek prakaar ki ghaas hai, aur yeh duniya ke sabse tezi se badhne wale paudhon mein se ek hai.",
+                "85% se zyada paudhe samudra mein paaye jaate hain.",
+                "Ginkgo Biloba ped ek 'jeevit jeevashm' hai, jo 270 million saal se astitva mein hai."
+            ],
+            Zoology: [
+                "Ek blue whale ka dil ek chhoti car ke size ka hota hai.",
+                "Ek octopus ke teen dil aur neela khoon hota hai.",
+                "Amar jellyfish mature hone ke baad apni bachpan ki avastha mein wapas ja sakti hai.",
+                "Girgit ki jeebh uske shareer se duguni lambi hoti hai."
+            ],
+            'Physical Chemistry': [
+                "Kaanch ek amorphous solid hai, matlab yeh ek liquid hai jo bahut dheere-dheere behta hai.",
+                "Paani ek hi samay mein teen avasthaon (thos, drav, gas) mein reh sakta hai. Ise triple point kehte hain.",
+                "Heera aur graphite dono pure carbon se bane hain, lekin unke atoms alag tarah se jude hote hain.",
+            ],
+            'Inorganic Chemistry': [
+                "Gallium ek aisi dhaatu hai jo aapke haath mein pighal jaayegi.",
+                "Sona aur taamba hi sirf do non-silvery dhaatu hain.",
+                "Jung iron oxide ka ek roop hai, jo tab banta hai jab loha oxygen aur paani ke saath react karta hai.",
+            ]
         };
 
-        // Event Listeners
-        focusNav.addEventListener('click', () => {
-            focusModal.style.display = 'flex';
-        });
+        // DOM Elements
+        const mainBottle = document.getElementById('mainBottle');
+        const mainSpinBtn = document.getElementById('mainSpinBtn');
+        const mainResult = document.getElementById('mainResult');
+        const mainFactContainer = document.getElementById('mainFactContainer');
+        
+        const modal = document.getElementById('subGameModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalResult = document.getElementById('modalResult');
+        const modalBoard = document.getElementById('modalBoard');
+        const modalOption1 = document.getElementById('modalOption1');
+        const modalOption2 = document.getElementById('modalOption2');
+        const modalBottle = document.getElementById('modalBottle');
+        const modalFactContainer = document.getElementById('modalFactContainer');
+        const modalSpinBtn = document.getElementById('modalSpinBtn');
 
-        cancelFocus.addEventListener('click', () => {
-            focusModal.style.display = 'none';
-        });
+        // Game State
+        let mainRotation = 0;
+        let isMainSpinning = false;
+        let subGameRotation = 0;
+        let isSubSpinning = false;
+        let currentSubGame = '';
 
-        startFocus.addEventListener('click', () => {
-            alert('Focus mode started! Apps will be blocked for the selected duration.');
-            focusModal.style.display = 'none';
-        });
-
-        cancelMood.addEventListener('click', () => {
-            moodModal.style.display = 'none';
-        });
-
-        startActivity.addEventListener('click', () => {
-            alert('Starting recommended activity...');
-            moodModal.style.display = 'none';
-        });
-
-        startDetoxBtn.addEventListener('click', () => {
-            alert('Starting a 5-minute breathing exercise...');
-        });
-
-        // Mood selection
-        moodOptions.forEach(option => {
-            option.addEventListener('click', () => {
-                const mood = option.getAttribute('data-mood');
-                showMoodSuggestion(mood);
-            });
-        });
-
-        // Timer selection
-        timerOptions.forEach(option => {
-            option.addEventListener('click', () => {
-                timerOptions.forEach(opt => opt.classList.remove('active'));
-                option.classList.add('active');
-            });
-        });
-
-        // Show mood suggestion
-        function showMoodSuggestion(mood) {
-            moodValue.textContent = mood;
-            document.getElementById('suggestionActivity').textContent = moodSuggestions[mood].activity;
-            document.getElementById('suggestionDesc').textContent = moodSuggestions[mood].description;
-            moodModal.style.display = 'flex';
-        }
-
-        // Update greeting based on time of day
-        function updateGreeting() {
-            const hour = new Date().getHours();
-            const greetingEl = document.querySelector('.greeting h1');
+        function displayRandomFact(topic, container) {
+            const topicFacts = scienceFacts[topic];
+            if (!topicFacts || topicFacts.length === 0) return;
             
-            if (hour < 12) {
-                greetingEl.textContent = 'Good morning, Alex!';
-            } else if (hour < 18) {
-                greetingEl.textContent = 'Good afternoon, Alex!';
-            } else {
-                greetingEl.textContent = 'Good evening, Alex!';
-            }
+            const randomIndex = Math.floor(Math.random() * topicFacts.length);
+            const fact = topicFacts[randomIndex];
+            
+            container.innerHTML = `<p class="text-sky-200"><strong class="font-bold text-yellow-300">Kya aap jaante hain?</strong> ${fact}</p>`;
+            container.classList.remove('hidden');
         }
 
-        // Initialize
-        updateGreeting();
+        function spinMainBottle() {
+            if (isMainSpinning) return;
+            isMainSpinning = true;
+            mainSpinBtn.disabled = true;
+            mainResult.textContent = 'Ghoom raha hai...';
+            mainFactContainer.classList.add('hidden');
+
+            const randomSpins = Math.floor(Math.random() * 4) + 5;
+            const randomAngle = Math.floor(Math.random() * 360);
+            mainRotation += (randomSpins * 360) + randomAngle;
+            mainBottle.style.transform = `rotate(${mainRotation}deg)`;
+
+            setTimeout(() => {
+                const finalAngle = mainRotation % 360;
+                
+                if (finalAngle > 240 && finalAngle <= 360) {
+                    mainResult.textContent = "Yeh Physics hai! Thoda aaram karein.";
+                    displayRandomFact('Physics', mainFactContainer);
+                } else if (finalAngle > 120 && finalAngle <= 240) {
+                    mainResult.textContent = "Yeh Chemistry hai! Dekhte hain aage kya hai...";
+                    setTimeout(() => openModal('chemistry'), 800);
+                } else {
+                    mainResult.textContent = 'Biology! Ek nayi chunauti...';
+                    setTimeout(() => openModal('biology'), 800);
+                }
+                
+                isMainSpinning = false;
+                mainSpinBtn.disabled = false;
+            }, 4000); 
+        }
+
+        function spinSubBottle() {
+            if (isSubSpinning) return;
+            isSubSpinning = true;
+            modalSpinBtn.disabled = true;
+            modalResult.textContent = 'Ghoom raha hai...';
+            modalFactContainer.innerHTML = '';
+            
+            const randomSpins = Math.floor(Math.random() * 4) + 5;
+            const randomAngle = Math.floor(Math.random() * 360);
+            subGameRotation += (randomSpins * 360) + randomAngle;
+            modalBottle.style.transform = `rotate(${subGameRotation}deg)`;
+
+            setTimeout(() => {
+                const finalAngle = subGameRotation % 360;
+                let topic = '';
+
+                if (currentSubGame === 'biology') {
+                    topic = (finalAngle > 0 && finalAngle <= 180) ? 'Botany' : 'Zoology';
+                    modalResult.textContent = `Yeh ${topic} hai! ${topic === 'Botany' ? '🌱' : '🐾'}`;
+                } else { // chemistry
+                    topic = (finalAngle > 0 && finalAngle <= 180) ? 'Physical Chemistry' : 'Inorganic Chemistry';
+                    modalResult.textContent = `Yeh ${topic} hai! ${topic === 'Physical Chemistry' ? '⚛️' : '🧪'}`;
+                }
+                
+                displayRandomFact(topic, modalFactContainer);
+                
+                isSubSpinning = false;
+                modalSpinBtn.disabled = false;
+            }, 4000);
+        }
+
+        function openModal(type) {
+            currentSubGame = type;
+            modalResult.textContent = 'Shuru karne ke liye ghumayein!';
+            modalFactContainer.innerHTML = '';
+            modalFactContainer.classList.add('hidden');
+
+            if (type === 'biology') {
+                modalTitle.textContent = 'Biology Battle!';
+                modalTitle.className = 'text-3xl font-bold text-emerald-300';
+                modalBoard.style.background = 'conic-gradient(#059669 0deg 180deg, #15803d 180deg 360deg)';
+                modalOption1.textContent = 'Botany';
+                modalOption2.textContent = 'Zoology';
+                modalSpinBtn.textContent = 'Phir Ghumayein';
+                modalSpinBtn.className = 'w-full px-6 py-2 font-bold rounded-full shadow-lg hover:scale-105 transform transition duration-300 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50';
+            } else { // chemistry
+                modalTitle.textContent = 'Chemistry Clash!';
+                modalTitle.className = 'text-3xl font-bold text-sky-300';
+                modalBoard.style.background = 'conic-gradient(#2563eb 0deg 180deg, #1d4ed8 180deg 360deg)';
+                modalOption1.textContent = 'Physical';
+                modalOption2.textContent = 'Inorganic';
+                modalSpinBtn.textContent = 'Phir Ghumayein';
+                modalSpinBtn.className = 'w-full px-6 py-2 font-bold rounded-full shadow-lg hover:scale-105 transform transition duration-300 bg-blue-600 hover:bg-blue-700 disabled:opacity-50';
+            }
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            modal.classList.add('hidden');
+            mainResult.textContent = 'Phir se ghumayein!';
+        }
     </script>
 </body>
 </html>
+
